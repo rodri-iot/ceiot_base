@@ -1,106 +1,77 @@
-# Ejercicio CiberKillChain - Ataque
+# Entrega CiberKillChain - Ataque
+
+## Rodrigo Jurgen Pinedo Nava
+## **Sistema de monitoreo de calidad del aire**
+
+## **Índice**
+- [📄 **Descripción**](#descripción)
+- [💡 **Objetivo del proyecto**](#objetivo-del-proyecto)
+- [⚛ **Sistema IoT**](#sistema-iot)
+- [🎯 **Objetivo del ataque**](#objetivo-del-ataque)
+- [🥊 **Resolución del ataque**](#resolución-del-ataque)
+  - [Reconocimiento (Reconnaissance)](#-reconocimiento-reconnaissance)
+  - [Armado del ataque (Weaponization)](#-armado-del-ataque-weaponization)
+  - [Entrega del ataque (Delivery)](#-entrega-del-ataque-delivery)
+  - [Explotación de la vulnerabilidad (Exploitation)](#-explotación-de-la-vulnerabilidad-exploitation)
+  - [Comando y Control (C2)](#-comando-y-control-c2)
+  - [Acción sobre el objetivo (Actions on objetives)](#-acción-sobre-el-objetivo-acctions-on-objetives)
+- [Flujos del ataque](#flujos-del-ataque)
+- [Conclusiones](#conclusiones)
 
 
-## Enunciado
+## 📄 **Descripción**
 
-Armar una cyberkillchain usando técnicas de la matriz de Att&ck para un escenario relacionado al trabajo práctico de la carrera.
+Sistema de monitoreo basado en IoT para medir la calidad del aire en entornos urbanos e industriales. Utiliza sensores conectados a una red LoRaWAN/WiFi/MQTT, enviando datos a un servidor central, donde son procesados y visualizados en una plataforma web/móvil.
 
-## Instrucciones
+## 💡 **Objetivo del proyecto**
 
-### Crear un nuevo documento en esta carpeta con el nombre entrega.md y las siguientes secciones:
+Implementar una solución IoT para monitorear la calidad del aire en entornos urbanos e industriales. Utiliza sensores conectados a una red LoRaWAN/WiFi/MQTT, enviando datos a un servidor central, donde son procesados y visualizados en una plataforma web/móvil.
 
- * Rodrigo Jurgen Pinedo Nava
- * Sistema de monitoreo de calidad del aire en industrias o areas urbanas, mediante una red de sensores conectados mediante LoRaWAN, WiFi/MQTT a un servidor propio. La visualización de los datos se la tiene en un aplicativo web.
- * Objetivo: Implementar una solución IoT para monitorear la calidad del  aire en áreas urbanas o industriales. Proporcionando datos valiosos para gobiernos, empresas y ciudadanos, ayudando a tomar decisiones informadas sobre la contaminación.
- * (# Resolución)
- * (## Reconnaissance)
- * (## Weaponization)
- * etc...
+## ⚛ **Sistema IoT**
 
-## Alguna indicaciones útiles
+El sistema consiste en una red de dispositivos IoT equipados con sensores ambientales que miden parámetros críticos de calidad del aire. Los datos se transmiten a un servidor central mediante protocolos inalámbricos, se almacenan en una base de datos y se visualizan en una plataforma web/móvil en tiempo real.
 
-Debe haber un objetivo para el ataque, algunas ideas inspiradoras:
+## 🎯 **Objetivo del ataque**
 
- * Obtener información con algún tipo de valor.
- * Alguna variante extorsiva de ransomware.
- * Usar de plataforma para atacar a otros, ya sea por ancho de banda, anonimización o como desplazamiento lateral hacia un objetivo más interesante.
- * Usar la plataforma para extraerle valor como criptominado o almacenamiento de información ilegal.
- * Sabotear la plataforma a favor de la competencia, tipo stuxnet.
+Realizar un ataque dirigido al sistema de monitoreo de calidad del aire con el propósito de comprometer la integridad de los datos, interrumpir su disponibilidad o utilizar la infraestructura para actividades maliciosas.
 
-El escenario debe asumir el sistema ya funcionando en el futuro.
+## 🥊 **Resolución del ataque**
 
-Debe ser en primera persona, es el punto de vista del atacante.
+### **Reconocimiento (Reconnaissance)**
 
-Para cada etapa, si hay varias medidas posibles, ordenar dejando para lo último lo que se va a hacer en el siguiente paso.
+Previo a comenzar se propone hacer una investigación acerca del proyecto respecto a los siguientes aspectos:
+- Identificación de la infraestructura y tecnologías utilizadas (LoRaWAN, MQTT, WiFi, servidor propio, ESP32 y sensores)
+- Recopilación de información pública (OSINT) sobre el sistema y sus vulnerabilidades.
+- Escaneo de dispositivos ioT conectados y análisis de redes.
 
-Es bien visto relacionar los recursos de ataque con las técnicas de ATT&CK o https://cwe.mitre.org/
+#### Técnicas utilizadas:
+- **T1598 - Phishing for Information** https://attack.mitre.org/techniques/T1598/
+  - Revisión de documentación pública: Buscar información en GitHub, foros, páginas de empresas y redes sociales sobre el sistema objetivo.
+  - Google Dorks: Utilizar búsquedas avanzadas para encontrar credenciales expuestas o configuraciones erróneas.
+  - Shodan y Censys: Identificar dispositivos IoT expuestos en la red.
+- **T1595 - Escaneo de red y servicios** https://attack.mitre.org/techniques/T1595/
+  - Escaneo pasivo con Wireshark: Monitorear el tráfico LoRaWAN/MQTT en busca de credenciales o patrones de comunicación.
+  - Nmap y Masscan: Descubrir dispositivos IoT, puertos abiertos y servicios disponibles en la red.
+  - Amap: Identificar versiones de servicios activos.
+- **T1596 - Identificación de dispositivos IoT en la red** https://attack.mitre.org/techniques/T1596/
+  - Sniffing de paquetes LoRaWAN/MQTT: Capturar paquetes de comunicación para entender el tráfico.
+  - Bluetooth/Wi-Fi sniffing con Kismet o Aircrack-ng: Identificar redes inalámbricas y dispositivos conectados.
+  - Uso de SDR (Software Defined Radio): Analizar señales LoRaWAN para posibles ataques futuros. 
+- **T1592 - Análisis de API y servicios web** https://attack.mitre.org/techniques/T1592/
+  - Enumeración de endpoints REST: Descubrir puntos vulnerables en la API del servidor.
+  - Pruebas en MQTT Broker: Verificar si permite conexiones anónimas o sin autenticación.
+  - Burp Suite y Postman: Probar interacciones con la plataforma web/móvil del sistema.
 
-No vale colapsar pasos. Puede haber un paso para el cual no corresponda nada. El ataque puede ser en etapas, siendo la acción sobre los objetivos un segundo ciclo embebido, por ejemplo cuando se obtienen credenciales y al acceder adentro se hace un nuevo ataque contra el objetivo final.
+### **Armado del ataque (Wqeaponization**
 
+### **Entrega del ataque (Delivery)**
 
-Es recomendable hacer dos o tres pasadas, en la primera la idea, en las siguientes refinamientos especificando las técnicas.
-PURO ATAQUE, nada de andar pensando cómo corregir nada.
+### **Explotación de la vulnerabilidad (Exploitation)**
 
+### **Comando y Control (C2)**
 
-### Ejemplo adaptado a un juego de guerra inventado
+### **Acción sobre el objetivo (Actions on objetives)**
 
-Las alternativas están en este ejemplo a modo ilustrativo, no deben haber alternativas en la entrega.
+## **Flujos del ataque**
 
-* Objetivo del ataque: inhabilitar sin destruir el puerto enemigo con vistas a posteriormente tomarlo.
-
-* Reconnaissance
-  - Imagen satelital identifica una pista de aterrizaje.
-  - Espías dicen que por el puerto entra el combustible.
-  - Espías locales dicen que la playa cercana no tiene buena vigilancia.
-  - Espías locales dicen que el bosque cercano no tiene buena vigilancia.
-
-* Weaponization (con alternativas de ejemplo)
-  - **Decido** preparar un equipo de comandos de sabotage.
-  - **Decido** preparar un equipo de comandos de sabotage con gomones de desembarco y un submarino para desembarcar en la playa cercana que no tiene buena vigilancia. (mejor)
-  - **Decido** preparar un equipo de comandos de sabotage, gomones de desembarco y un submarino para desembarcar en la playa cercana que no tiene buena vigilancia. (mucho mejor)
-  - **Decido** preparar un equipo de comandos de sabotage con equipo de comuicaciones Super High TeraHertz Radio que el adversario no puede detectar, gomones de desembarco y un submarino para desembarcar en la playa cercana que no tiene buena vigilancia. (muchísimo mejor)
-  - **Puedo** *preparar un equipo de comandos de sabotage paracaidistas*
-  - **Puedo** *preparar un bombardeo al puerto.*
-  - **Puedo** *preparar la invasión directamente.*
-  
-* Delivery
-  - Envío al equipo de sabotage a la playa cercana en submarino.
-  - Envío al equipo de sabotage a la playa cercana en submarino y gomones de desembarco (mejor)
-  
-* Exploit (con alternativas de ejemplo)
-  - El equipo logra desembarcar sin incidentes en la playa.
-  - El equipo logra desembarcar sin incidentes en la playa por la falta de vigilancia.
-  
-* Installation (con alternativas de ejemplo)
-  - El equipo se hace pasar por una compañia de circo como camuflaje. (si es porque el equipo encuentra una compañía de circo no hace falta que esté en Weaponization)
-  - El equipo se esconde en un bosque cercano
-
-* Command & Control
-  - **Decido** utilizar Super High TeraHertz Radio que el adversario no puede detectar.
-  - **Puedo** *utilizar palomas mensajeras.*
-  
-* Actions on Objectives
-  - El equipo de comandos provoca daños menores en las cañerías.
-  - El equipo de comandos coloca minas en el puerto dejando un camino para el desembarco.
-
-#### Una leve variante para contemplar un ataque en etapas
-
-* Actions on Objectives
-  * Reconnaissance
-    - El equipo disfrazado de payasos revisa las instalaciones para elegir los mejores puntos de ataque.
-
-  * Weaponization
-    - El equipo prepara cargas controladas por cables para su activación remota.
-
-  * Delivery
-    - El equipo se hace pasar por mantenimiento urbano y accede al puerto.
-
-  * Exploit
-    - El equipo instala las cargas en los lugares apropiados.
-
-  * Command & Control
-    - Se utilizarán cables para detonar las cargas
-
-  * Actions on Objectives
-    - Se activan la cargas y provocan daños menores en las cañerías.
-
+## **Conclusiones**
