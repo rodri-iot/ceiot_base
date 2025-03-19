@@ -4,19 +4,19 @@
 ## **Sistema de monitoreo de calidad del aire**
 
 ## **Índice**
-- [📄 **Descripción**](#descripción)
-- [💡 **Objetivo del proyecto**](#objetivo-del-proyecto)
-- [⚛ **Sistema IoT**](#sistema-iot)
-- [🎯 **Objetivo del ataque**](#objetivo-del-ataque)
-- [🥊 **Resolución del ataque**](#resolución-del-ataque)
+- [📄 **Descripción**](#-descripción)
+- [💡 **Objetivo del proyecto**](#-objetivo-del-proyecto)
+- [⚛ **Sistema IoT**](#-sistema-iot)
+- [🎯 **Objetivo del ataque**](#-objetivo-del-ataque)
+- [🥊 **Resolución del ataque**](#-resolución-del-ataque)
   - [Reconocimiento (Reconnaissance)](#-reconocimiento-reconnaissance)
   - [Armado del ataque (Weaponization)](#-armado-del-ataque-weaponization)
   - [Entrega del ataque (Delivery)](#-entrega-del-ataque-delivery)
   - [Explotación de la vulnerabilidad (Exploitation)](#-explotación-de-la-vulnerabilidad-exploitation)
   - [Comando y Control (C2)](#-comando-y-control-c2)
   - [Acción sobre el objetivo (Actions on objetives)](#-acción-sobre-el-objetivo-acctions-on-objetives)
-- [Flujos del ataque](#flujos-del-ataque)
-- [Conclusiones](#conclusiones)
+- [🔀 **Diagrama de Flujos del ataque**](#-flujos-del-ataque)
+- [🧠 **Conclusiones**](#-conclusiones)
 
 
 ## 📄 **Descripción**
@@ -72,6 +72,6 @@ Previo a comenzar se propone hacer una investigación acerca del proyecto respec
 
 ### **Acción sobre el objetivo (Actions on objetives)**
 
-## **Flujos del ataque**
+## 🔀 **Flujos del ataque**
 
-## **Conclusiones**
+## 🧠 **Conclusiones**
