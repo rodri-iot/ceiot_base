@@ -39,28 +39,65 @@ Realizar un ataque dirigido al sistema de monitoreo de calidad del aire con el p
 
 ### **Reconocimiento (Reconnaissance)**
 
-Previo a comenzar se propone hacer una investigación acerca del proyecto respecto a los siguientes aspectos:
-- Identificación de la infraestructura y tecnologías utilizadas (LoRaWAN, MQTT, WiFi, servidor propio, ESP32 y sensores)
-- Recopilación de información pública (OSINT) sobre el sistema y sus vulnerabilidades.
-- Escaneo de dispositivos ioT conectados y análisis de redes.
+Antes de iniciar el ataque, el atacante deberá realizar una investigación exhaustiva sobre la infraestructura del sistema objetivo con el fin de identificar posibles vectores de entrada y preparar las fases posteriores de la intrusión. Su enfoque se basa en técnicas OSINT, escaneo activo, análisis pasivo de red y reconocimiento de servicios web.
+
+🛰️ **Infraestructura identificada**
+
+- Tecnologías utilizadas: LoRaWAN, MQTT, WiFi, servidor propio, ESP32-S3 y sensores ambientales.
+- El sistema incluye un broker MQTT, una base de datos InfluxDB/PostgreSQL, y una plataforma de visualización web/móvil.
 
 #### Técnicas utilizadas:
-- **T1598 - Phishing for Information** https://attack.mitre.org/techniques/T1598/
-  - Revisión de documentación pública: Buscar información en GitHub, foros, páginas de empresas y redes sociales sobre el sistema objetivo.
-  - Google Dorks: Utilizar búsquedas avanzadas para encontrar credenciales expuestas o configuraciones erróneas.
-  - Shodan y Censys: Identificar dispositivos IoT expuestos en la red.
-- **T1595 - Escaneo de red y servicios** https://attack.mitre.org/techniques/T1595/
-  - Escaneo pasivo con Wireshark: Monitorear el tráfico LoRaWAN/MQTT en busca de credenciales o patrones de comunicación.
-  - Nmap y Masscan: Descubrir dispositivos IoT, puertos abiertos y servicios disponibles en la red.
-  - Amap: Identificar versiones de servicios activos.
-- **T1596 - Identificación de dispositivos IoT en la red** https://attack.mitre.org/techniques/T1596/
-  - Sniffing de paquetes LoRaWAN/MQTT: Capturar paquetes de comunicación para entender el tráfico.
-  - Bluetooth/Wi-Fi sniffing con Kismet o Aircrack-ng: Identificar redes inalámbricas y dispositivos conectados.
-  - Uso de SDR (Software Defined Radio): Analizar señales LoRaWAN para posibles ataques futuros. 
-- **T1592 - Análisis de API y servicios web** https://attack.mitre.org/techniques/T1592/
-  - Enumeración de endpoints REST: Descubrir puntos vulnerables en la API del servidor.
-  - Pruebas en MQTT Broker: Verificar si permite conexiones anónimas o sin autenticación.
-  - Burp Suite y Postman: Probar interacciones con la plataforma web/móvil del sistema.
+
+🕵️ **Recolección de información pública (OSINT)**
+
+Técnicas ATT&CK asociadas:
+
+- [T1592 – Gather Victim Host Information](https://attack.mitre.org/techniques/T1592/)
+- [T1590 – Gather Victim Network Information](https://attack.mitre.org/techniques/T1590/)
+- [T1589 – Gather Victim Identity Information](https://attack.mitre.org/techniques/T1589/)
+
+Acciones realizadas:
+
+- Revisión de documentación técnica publicada en GitHub, foros y sitios institucionales relacionados con el proyecto.
+- Uso de Google Dorks para localizar configuraciones expuestas, credenciales o endpoints vulnerables.
+- Búsqueda en motores como Shodan y Censys para identificar nodos conectados públicamente, como sensores o gateways LoRa.
+
+🌐 **Escaneo de red y servicios**
+
+Técnicas ATT&CK asociadas:
+
+- [T1595 – Active Scanning](https://attack.mitre.org/techniques/T1595/)
+- [T1595.003 – Service Scanning](https://attack.mitre.org/techniques/T1595/003/)
+
+Acciones realizadas:
+
+- Escaneo pasivo del tráfico de red con Wireshark para analizar protocolos como MQTT y LoRaWAN, identificando patrones de autenticación o mensajes sin cifrar.
+- Uso de herramientas como Nmap y Masscan para detectar dispositivos IoT conectados, puertos abiertos y servicios activos.
+- Aplicación de Amap para determinar versiones específicas de servicios expuestos, como brokers MQTT, paneles web o servicios API.
+
+📡 **Identificación de dispositivos IoT**
+
+Técnica ATT&CK asociada:
+
+- [T1596 – Search Open Websites/Domains for IoT Devices](https://attack.mitre.org/techniques/T1596/)
+
+Acciones realizadas:
+
+- Captura de tráfico LoRaWAN y MQTT mediante sniffing, analizando los paquetes enviados por los nodos ESP32.
+- Identificación de dispositivos WiFi o BLE con herramientas como Kismet y Aircrack-ng.
+- Análisis espectral con Software Defined Radio (SDR) para estudiar las señales LoRa en tiempo real y mapear la cobertura.
+
+🔍 **Análisis de APIs y servicios web**
+
+Técnica ATT&CK asociada:
+
+- [T1592.002 – Software](https://attack.mitre.org/techniques/T1592/002/)
+
+Acciones realizadas:
+
+- Enumeración de endpoints de la API REST del backend para descubrir funcionalidades expuestas sin autenticación o validación adecuada.
+- Verificación de configuración del broker MQTT para determinar si permite conexiones anónimas o sin TLS.
+- Evaluación de la plataforma web mediante Burp Suite y Postman, probando inyecciones, autenticaciones débiles y fugas de información.
 
 ### **Armado del ataque (Wqeaponization**
 
