@@ -37,7 +37,7 @@ Realizar un ataque dirigido al sistema de monitoreo de calidad del aire con el p
 
 ## 🥊 **Resolución del ataque**
 
-### **Reconocimiento (Reconnaissance)**
+### **1. Reconocimiento (Reconnaissance)**
 
 Antes de iniciar el ataque, el atacante deberá realizar una investigación exhaustiva sobre la infraestructura del sistema objetivo con el fin de identificar posibles vectores de entrada y preparar las fases posteriores de la intrusión. Su enfoque se basa en técnicas OSINT, escaneo activo, análisis pasivo de red y reconocimiento de servicios web.
 
@@ -99,15 +99,61 @@ Acciones realizadas:
 - Verificación de configuración del broker MQTT para determinar si permite conexiones anónimas o sin TLS.
 - Evaluación de la plataforma web mediante Burp Suite y Postman, probando inyecciones, autenticaciones débiles y fugas de información.
 
-### **Armado del ataque (Wqeaponization**
+### **2. Armado del ataque (Wqeaponization**
 
-### **Entrega del ataque (Delivery)**
+Luego de haber recolectado suficiente información sobre la infraestructura y los servicios involucrados en el sistema de monitoreo de calidad del aire, el atacante comenzará a preparar las herramientas y cargas maliciosas necesarias para comprometer el entorno. En esta etapa, se enfoca en explotar debilidades específicas detectadas en la comunicación entre dispositivos IoT y el servidor central.
 
-### **Explotación de la vulnerabilidad (Exploitation)**
+⚙️ Técnicas utilizadas
 
-### **Comando y Control (C2)**
+- [CWE-311 – Lack of Encryption in Data Transmission](https://cwe.mitre.org/data/definitions/311.html)
+  Se observa que la comunicación entre los nodos IoT y el servidor mediante el protocolo MQTT no utiliza cifrado TLS, lo que permite interceptar, leer o manipular los datos transmitidos.
+- [CWE-345 – Insufficient Verification of Data Authenticity](https://cwe.mitre.org/data/definitions/345.html)
+  El servidor no verifica la autenticidad de los datos que recibe desde los sensores, permitiendo la inyección de información falsa sin mecanismos robustos de validación.
+- [T1587.001 – Develop Capabilities: Malware](https://attack.mitre.org/techniques/T1587/001/)
+  El atacante diseña una herramienta personalizada que simula el comportamiento de un nodo legítimo, capaz de enviar datos ambientales manipulados al sistema objetivo.
 
-### **Acción sobre el objetivo (Actions on objetives)**
+🔧 Acciones realizadas
+
+Tras analizar el comportamiento del sistema, el atacante decide no comprometer físicamente los dispositivos, sino emular un nodo IoT que transmita datos maliciosos al broker MQTT. Para ello, desarrolla un script en Python que se hace pasar por uno de los nodos del sistema, utilizando las estructuras de datos y los tópicos identificados en la fase anterior.
+
+Este script permite publicar mensajes falsificados con valores normalizados, diseñados para evadir alertas o generar condiciones ambientales falsas según la estrategia del atacante. Al mantener un perfil de tráfico coherente, el nodo emulado puede pasar desapercibido en el flujo normal de comunicaciones.
+
+🧪 Ejemplo de código: simulación de nodo MQTT malicioso
+``` Codigo simulación de nodo MQTT
+import paho.mqtt.client as mqtt
+import json
+import time
+import random
+
+broker_ip = "192.168.1.100"  # Dirección IP del broker MQTT objetivo
+topic = "sensores/aire/nodo_03"
+
+def generar_datos_falsos():
+    return json.dumps({
+        "pm25": round(random.uniform(2.0, 10.0), 2),
+        "co2": round(random.uniform(350, 600), 2),
+        "voc": round(random.uniform(0.1, 0.5), 2),
+        "temperatura": round(random.uniform(20, 25), 2),
+        "humedad": round(random.uniform(40, 60), 2)
+    })
+
+cliente = mqtt.Client("nodo_falso_aire")
+cliente.connect(broker_ip, 1883, 60)
+
+while True:
+    payload = generar_datos_falsos()
+    cliente.publish(topic, payload)
+    print(f"Payload enviado: {payload}")
+    time.sleep(5)
+```
+
+### **3. Entrega del ataque (Delivery)**
+
+### **4. Explotación de la vulnerabilidad (Exploitation)**
+
+### **5. Comando y Control (C2)**
+
+### **6. Acción sobre el objetivo (Actions on objetives)**
 
 ## 🔀 **Flujos del ataque**
 
