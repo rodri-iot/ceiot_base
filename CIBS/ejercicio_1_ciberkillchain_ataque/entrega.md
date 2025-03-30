@@ -216,6 +216,44 @@ El atacante tiene su objetivo claro para atacar el sistema y de seguro esperará
 
 ### **5. Comando y Control (C2)**
 
+Luego de lograr la inyección exitosa de datos manipulados en el sistema, el atacante establece un canal de control y monitoreo continuo sobre el nodo falso. Esta fase le permite ajustar el comportamiento del dispositivo emulado, mantener la persistencia del ataque y reaccionar ante posibles medidas de mitigación implementadas por los administradores del sistema.
+
+⚙️ Técnicas utilizadas
+
+- [T1071.001 – Application Layer Protocol: Web Protocols](https://attack.mitre.org/techniques/T1071/001/)
+
+  El atacante utiliza protocolos de aplicación estándar (como HTTP o MQTT) para comunicarse con el nodo falso y enviarle comandos de actualización.
+
+- [T1572 – Protocol Tunneling](https://attack.mitre.org/techniques/T1572/)
+
+  Las instrucciones de control son encapsuladas dentro de mensajes válidos de MQTT, evadiendo la detección por parte de mecanismos de monitoreo o filtrado de red.
+
+- [T1008 – Fallback Channels](https://attack.mitre.org/techniques/T1008/)
+
+  En caso de ser bloqueado el canal principal, el atacante dispone de un servidor web externo que actúa como backup para mantener el control sobre el nodo malicioso.
+
+🔧 Acciones realizadas
+
+El atacante establece un script de control remoto que monitorea el estado del nodo falso desde un servidor externo. A través de este canal, puede actualizar en tiempo real:
+
+- La frecuencia de publicación de datos.
+- Los valores simulados en cada métrica (PM2.5, CO₂, VOCs, etc.).
+- El comportamiento del nodo ante eventos del entorno (por ejemplo, al detectar actividad de administración o reconfiguración del sistema).
+
+Para evitar la detección, encapsula los comandos de control dentro de mensajes MQTT aparentemente inofensivos o utiliza canales HTTP alternativos si detecta que el broker ha sido protegido o restringido.
+
+También implementa mecanismos de auto-reconexión y resistencia a reinicios, lo que garantiza que el nodo falso se mantenga operativo y conectado incluso si hay cortes breves o acciones defensivas básicas.
+
+💡 Persistencia y adaptabilidad
+
+Este canal de comando y control otorga al atacante la capacidad de:
+
+- Cambiar dinámicamente los objetivos del ataque (desinformar, ocultar, sabotear).
+- Evadir contramedidas implementadas de forma reactiva.
+- Reutilizar la infraestructura comprometida como plataforma para lanzar ataques hacia otros sistemas o redes.
+
+Con esta etapa completada, el atacante mantiene el control activo sobre la operación del nodo falsificado, pudiendo extender su campaña, escalar el ataque o pivotar hacia nuevas oportunidades dentro o fuera del entorno IoT.
+
 ### **6. Acción sobre el objetivo (Actions on objetives)**
 
 ## 🔀 **Flujos del ataque**
