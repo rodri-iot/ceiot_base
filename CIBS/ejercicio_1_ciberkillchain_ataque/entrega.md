@@ -99,7 +99,7 @@ Acciones realizadas:
 - Verificación de configuración del broker MQTT para determinar si permite conexiones anónimas o sin TLS.
 - Evaluación de la plataforma web mediante Burp Suite y Postman, probando inyecciones, autenticaciones débiles y fugas de información.
 
-### **2. Armado del ataque (Wqeaponization**
+### **2. Armado del ataque (Wqeaponization)**
 
 Luego de haber recolectado suficiente información sobre la infraestructura y los servicios involucrados en el sistema de monitoreo de calidad del aire, el atacante comenzará a preparar las herramientas y cargas maliciosas necesarias para comprometer el entorno. En esta etapa, se enfoca en explotar debilidades específicas detectadas en la comunicación entre dispositivos IoT y el servidor central.
 
@@ -149,7 +149,41 @@ while True:
 
 ### **3. Entrega del ataque (Delivery)**
 
+Una vez desarrolladas las herramientas para simular un nodo IoT malicioso, el atacante procederá a su despliegue, integrándolo dentro de la red de comunicaciones del sistema objetivo. La entrega del ataque se realiza mediante la publicación de datos falsificados hacia el brocker MQTT del sistea, simulando de forma convincente el comportamiento de un nodo legítimo.
+
+⚙️ Técnicas utilizadas
+
+- [T1565.002 – Data Manipulation: Network Traffic Manipulation](https://attack.mitre.org/techniques/T1565/002/)
+
+  Se manipula el flujo de datos transmitido a través del protocolo MQTT, alterando su contenido en tránsito o publicando directamente información fabricada.
+- [T1602 – Data Manipulation](https://attack.mitre.org/techniques/T1602/)
+
+  Se inyectan datos falsos con apariencia válida, con el fin de engañar al sistema de monitoreo y alterar su percepción de las condiciones ambientales.
+
+🔧 Acciones realizadas
+
+El atacante configura un entorno desde el cual se peuda emular un nodo IoT se conecta al mismo brocker MQTT utilizado por el sistema. Aprovechando la falta de autentificación estricta en el brocker y a la carencia de cifrado en la transmisión, logra establecer conexión sin restricciones aparentes.
+
+El nodo malicioso comienza a publicar datos que simulan condiciones normales o controladas del aire, evitando generar alertas. Estos datos falsificados son entregados en los mismo tópicos MQTT que utilizan los sensores legítimos, logrando así infiltrarse en el sistema sin ser detectado.
+
+Reforzar la manipulación, requerirá de implementar un mecanismo de inyección intermitente de ruido ambiental, valores ligeramente alterados que simulan fluctuaciones normales en la calidad del aire. Esta técnica reduce la capacidad de los administradores para distinguir entre lecturas reales y maliciosas, disminuyendo la efectividad de los algoritmos de alerta.
+
+📡 Escenario de entrega
+
+El ataque puede desplegarse desde distintos entornos según el objetivo:
+
+- Una red Wi-Fi local, si el atacante se encuentra físicamente cerca del sistema.
+- Una instancia en la nube, configurada como cliente MQTT remoto que publica periódicamente los datos falsos.
+- Un dispositivo de campo con conectividad LoRa o Wi-Fi, disfrazado como nodo adicional en la red.
+
+Esta fase de entrega es crítica, ya que define la forma en que el sistema será alimentado con datos alterados sin necesidad de comprometer directamente los sensores físicos ni los servidores. El uso de canales abiertos y la falta de verificación de integridad permiten al atacante integrarse en el flujo de datos de manera transparente.
+
 ### **4. Explotación de la vulnerabilidad (Exploitation)**
+
+
+
+
+
 
 ### **5. Comando y Control (C2)**
 
