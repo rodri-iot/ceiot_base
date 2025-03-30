@@ -180,10 +180,39 @@ Esta fase de entrega es crítica, ya que define la forma en que el sistema será
 
 ### **4. Explotación de la vulnerabilidad (Exploitation)**
 
+Una vez entregado el nodo malicioso al sistema, el atacante ejecutará la explotación de las debilidades previamente identificadas en la infraestructura del sistema de monitoreo. En esta etapa, su objetivo es lograr que los datos falsificados sean aceptados como válidos por el sistema, sin activar mecanismos de alerta ni generar sospechas por parte de los administradores.
 
+⚙️ Técnicas utilizadas
 
+- [CWE-345 – Insufficient Verification of Data Authenticity](https://cwe.mitre.org/data/definitions/345.html)
 
+  El servidor no cuenta con mecanismos adecuados para verificar que los datos provienen de un dispositivo autorizado o que no han sido manipulados en tránsito.
+- [CWE-306 – Missing Authentication for Critical Function](https://cwe.mitre.org/data/definitions/306.html)
 
+  El broker MQTT permite la publicación en tópicos sensibles sin requerir autenticación robusta o control de acceso por dispositivo.
+- [T1203 – Exploitation for Client Execution](https://attack.mitre.org/techniques/T1203/)
+
+  El atacante fuerza al sistema backend a procesar entradas manipuladas como si fueran datos válidos generados por los sensores.
+
+🔧 Acciones realizadas
+
+El atacante publica mensajes cuidadosamente elaborados en el tópico MQTT correspondiente a uno de los nodos legítimos. Los mensajes incluyen lecturas ambientales falsas, generadas con valores que simulan condiciones normales o incluso condiciones anómalas según el objetivo final.
+
+Debido a que el servidor no implementa controles para verificar la integridad de los datos (por ejemplo, mediante firmas digitales, tokens HMAC u otras formas de autenticación de origen), los paquetes son aceptados, procesados y almacenados en la base de datos como si provinieran de un sensor confiable.
+
+Esta explotación permite modificar la percepción que el sistema tiene de la calidad del aire en determinadas zonas. El atacante puede:
+
+- Suprimir alertas reales, enviando valores dentro de rangos normales para ocultar eventos contaminantes reales.
+- Generar falsas alertas, simulando aumentos artificiales de CO₂ o partículas PM2.5.
+- Distorsionar los datos históricos, afectando análisis de tendencias o reportes.
+
+💡 Impacto de la explotación
+
+El atacante tiene su objetivo claro para atacar el sistema y de seguro esperará cierto impacto para sentirse satisfecho, pudiendo ser:
+
+- El sistema de monitoreo pierde confiabilidad, ya que las decisiones tomadas por los usuarios (ciudadanos, industrias, gobiernos) se basan en datos comprometidos.
+- Se habilita el camino para ataques posteriores, como sabotaje, extorsión o manipulación pública de la información ambiental.
+- Se posibilita el uso de la infraestructura como vector indirecto para atacar a otros sistemas (p. ej., a través de reportes falsos que activen protocolos automáticos de respuesta).
 
 ### **5. Comando y Control (C2)**
 
