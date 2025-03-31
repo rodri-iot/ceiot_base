@@ -118,13 +118,8 @@ Tras analizar el comportamiento del sistema, el atacante decide no comprometer f
 
 Este script permite publicar mensajes falsificados con valores normalizados, diseñados para evadir alertas o generar condiciones ambientales falsas según la estrategia del atacante. Al mantener un perfil de tráfico coherente, el nodo emulado puede pasar desapercibido en el flujo normal de comunicaciones.
 
-🧪 Ejemplo de código: simulación de nodo MQTT malicioso
+🧪 Ejemplo: simulación de nodo MQTT malicioso
 ``` Codigo simulación de nodo MQTT
-import paho.mqtt.client as mqtt
-import json
-import time
-import random
-
 broker_ip = "192.168.1.100"  # Dirección IP del broker MQTT objetivo
 topic = "sensores/aire/nodo_03"
 
@@ -392,3 +387,4 @@ El escenario permite reflexionar sobre los riesgos reales que enfrentan los sist
 - Universidad de Buenos Aires (UBA)
 - Facultad de Ingeniería
 - Especialización en Internet de las Cosas (IoT)
+- **Linkedin:** https://www.linkedin.com/in/rodrigopinedo/
