@@ -248,13 +248,68 @@ También implementa mecanismos de auto-reconexión y resistencia a reinicios, lo
 
 Este canal de comando y control otorga al atacante la capacidad de:
 
-- Cambiar dinámicamente los objetivos del ataque (desinformar, ocultar, sabotear).
+- Cambiar dinámicamente los objetivos del ataque (desinformar, ocultar, sabotear, utilizar información).
 - Evadir contramedidas implementadas de forma reactiva.
 - Reutilizar la infraestructura comprometida como plataforma para lanzar ataques hacia otros sistemas o redes.
 
 Con esta etapa completada, el atacante mantiene el control activo sobre la operación del nodo falsificado, pudiendo extender su campaña, escalar el ataque o pivotar hacia nuevas oportunidades dentro o fuera del entorno IoT.
 
 ### **6. Acción sobre el objetivo (Actions on objetives)**
+
+Con el nodo malicioso operativo y el canal de control consolidado, el atacante inicia las acciones finales sobre el sistema, orientadas a afectar directamente sus funciones críticas, manipular los resultados y explotar la infraestructura comprometida para objetivos secundarios. Estas acciones varían en función del propósito estratégico definido: sabotaje, desinformación, o utilización encubierta de recursos.
+
+⚙️ Técnicas utilizadas
+
+- [T1565.002 – Data Manipulation: Network Traffic Manipulation](https://attack.mitre.org/techniques/T1565/002/)
+
+  El atacante continúa alterando los datos ambientales publicados en los tópicos MQTT, afectando la calidad y veracidad de la información visualizada.
+
+- [T1499 – Endpoint Denial of Service](https://attack.mitre.org/techniques/T1499/)
+
+  Se incrementa la frecuencia de publicación de datos basura o se genera tráfico excesivo hacia el broker MQTT, con el objetivo de degradar el rendimiento del sistema o interrumpir su funcionamiento.
+
+- [T1584.005 – Compromise Infrastructure: Botnet](https://attack.mitre.org/techniques/T1584/005/)
+
+  Se utiliza el dispositivo comprometido como nodo de una botnet para operaciones externas, como túneles de tráfico, ataques distribuidos o persistencia dentro de otras redes.
+
+
+🔧 Acciones realizadas
+
+El atacante ejecuta distintas tácticas sobre el sistema comprometido:
+
+1. Manipulación de datos históricos
+
+  - Publica mediciones ambientales falsas durante un periodo prolongado, alterando las tendencias que luego son utilizadas para tomar decisiones.
+  - Simula mejoras artificiales en la calidad del aire, generando una percepción errónea ante usuarios o autoridades.
+
+2. Sabotaje controlado del sistema
+
+  - Inunda el broker MQTT con datos duplicados, inestables o contradictorios, provocando inestabilidad en la base de datos y errores en el frontend del sistema.
+  - Reduce la disponibilidad del servicio, interfiriendo con la recepción y visualización de datos de sensores legítimos.
+
+3. Extensión del ataque
+
+  - Utiliza el nodo falso como intermediario para escanear otras partes de la red o lanzar ataques laterales contra sistemas conectados.
+  - Al ser parte de la infraestructura legítima, su actividad se enmascara dentro del tráfico esperado, dificultando su detección.
+
+4. Utilización encubierta de recursos del sistema
+
+  Aprovecha la conectividad y capacidad del nodo falsificado para ejecutar tareas paralelas encubiertas, como:
+
+  - Montaje de un proxy o túnel VPN para anonimizar otras actividades maliciosas.
+  - Almacenamiento oculto de información ilegal o robada, utilizando la base de datos o el almacenamiento de logs.
+  - Implementación de un cliente de criptominería ligera, aprovechando el uso constante de energía eléctrica del nodo para generar ganancias sin levantar sospechas.
+
+💥 Resultado del ataque
+
+Como consecuencia de estas acciones, el atacante logra:
+
+- Desinformar a usuarios y tomadores de decisiones, comprometiendo la confianza en el sistema.
+- Interrumpir el monitoreo ambiental, afectando la capacidad de respuesta ante situaciones de contaminación real.
+- Reutilizar la infraestructura como plataforma encubierta, aumentando el impacto y la persistencia del ataque sin necesidad de comprometer nuevos dispositivos.
+
+  Como resultado, la infraestructura del sistema comienza a trabajar en segundo plano para fines no previstos, sin interferir directamente en su función principal, lo que hace más difícil su detección.
+
 
 ## 🔀 **Flujos del ataque**
 
