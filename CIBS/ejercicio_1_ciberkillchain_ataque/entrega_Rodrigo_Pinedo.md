@@ -1,7 +1,6 @@
-# Entrega CiberKillChain - Ataque
+# Ejercicio CiberKillChain - Ataque
 
-## Rodrigo Jurgen Pinedo Nava
-## **Sistema de monitoreo de calidad del aire**
+## 📈 **Sistema de monitoreo de calidad del aire**
 
 ## **Índice**
 - [📄 **Descripción**](#-descripción)
