@@ -9,15 +9,15 @@
 - [⚛ **Sistema IoT**](#-sistema-iot)
 - [🎯 **Objetivo del ataque**](#-objetivo-del-ataque)
 - [🥊 **Resolución del ataque**](#-resolución-del-ataque)
-  - [Reconocimiento (Reconnaissance)](#-reconocimiento-reconnaissance)
-  - [Armado del ataque (Weaponization)](#-armado-del-ataque-weaponization)
-  - [Entrega del ataque (Delivery)](#-entrega-del-ataque-delivery)
-  - [Explotación de la vulnerabilidad (Exploitation)](#-explotación-de-la-vulnerabilidad-exploitation)
-  - [Comando y Control (C2)](#-comando-y-control-c2)
-  - [Acción sobre el objetivo (Actions on objetives)](#-acción-sobre-el-objetivo-acctions-on-objetives)
+  - [1. Reconocimiento (Reconnaissance)](#1-reconocimiento-reconnaissance)
+  - [2. Armado del ataque (Weaponization)](#2-armado-del-ataque-weaponization)
+  - [3. Entrega del ataque (Delivery)](#3-entrega-del-ataque-delivery)
+  - [4. Explotación de la vulnerabilidad (Exploitation)](#4-explotación-de-la-vulnerabilidad-exploitation)
+  - [5. Comando y Control (C2)](#5-comando-y-control-c2)
+  - [6. Acción sobre el objetivo (Actions on objetives)](#6-acción-sobre-el-objetivo-acctions-on-objetives)
 - [🔀 **Diagrama de Flujos del ataque**](#-flujos-del-ataque)
 - [🧠 **Conclusiones**](#-conclusiones)
-
+- [🥇 **Autor**](#autor)
 
 ## 📄 **Descripción**
 
@@ -50,13 +50,13 @@ Antes de iniciar el ataque, el atacante deberá realizar una investigación exha
 
 🕵️ **Recolección de información pública (OSINT)**
 
-Técnicas ATT&CK asociadas:
+**Técnicas ATT&CK asociadas:**
 
 - [T1592 – Gather Victim Host Information](https://attack.mitre.org/techniques/T1592/)
 - [T1590 – Gather Victim Network Information](https://attack.mitre.org/techniques/T1590/)
 - [T1589 – Gather Victim Identity Information](https://attack.mitre.org/techniques/T1589/)
 
-Acciones realizadas:
+**Acciones realizadas:**
 
 - Revisión de documentación técnica publicada en GitHub, foros y sitios institucionales relacionados con el proyecto.
 - Uso de Google Dorks para localizar configuraciones expuestas, credenciales o endpoints vulnerables.
@@ -64,12 +64,12 @@ Acciones realizadas:
 
 🌐 **Escaneo de red y servicios**
 
-Técnicas ATT&CK asociadas:
+**Técnicas ATT&CK asociadas:**
 
 - [T1595 – Active Scanning](https://attack.mitre.org/techniques/T1595/)
 - [T1595.003 – Service Scanning](https://attack.mitre.org/techniques/T1595/003/)
 
-Acciones realizadas:
+**Acciones realizadas:**
 
 - Escaneo pasivo del tráfico de red con Wireshark para analizar protocolos como MQTT y LoRaWAN, identificando patrones de autenticación o mensajes sin cifrar.
 - Uso de herramientas como Nmap y Masscan para detectar dispositivos IoT conectados, puertos abiertos y servicios activos.
@@ -77,11 +77,11 @@ Acciones realizadas:
 
 📡 **Identificación de dispositivos IoT**
 
-Técnica ATT&CK asociada:
+**Técnica ATT&CK asociada:**
 
 - [T1596 – Search Open Websites/Domains for IoT Devices](https://attack.mitre.org/techniques/T1596/)
 
-Acciones realizadas:
+**Acciones realizadas:**
 
 - Captura de tráfico LoRaWAN y MQTT mediante sniffing, analizando los paquetes enviados por los nodos ESP32.
 - Identificación de dispositivos WiFi o BLE con herramientas como Kismet y Aircrack-ng.
@@ -89,11 +89,11 @@ Acciones realizadas:
 
 🔍 **Análisis de APIs y servicios web**
 
-Técnica ATT&CK asociada:
+**Técnica ATT&CK asociada:**
 
 - [T1592.002 – Software](https://attack.mitre.org/techniques/T1592/002/)
 
-Acciones realizadas:
+**Acciones realizadas:**
 
 - Enumeración de endpoints de la API REST del backend para descubrir funcionalidades expuestas sin autenticación o validación adecuada.
 - Verificación de configuración del broker MQTT para determinar si permite conexiones anónimas o sin TLS.
@@ -103,7 +103,7 @@ Acciones realizadas:
 
 Luego de haber recolectado suficiente información sobre la infraestructura y los servicios involucrados en el sistema de monitoreo de calidad del aire, el atacante comenzará a preparar las herramientas y cargas maliciosas necesarias para comprometer el entorno. En esta etapa, se enfoca en explotar debilidades específicas detectadas en la comunicación entre dispositivos IoT y el servidor central.
 
-⚙️ Técnicas utilizadas
+⚙️ **Técnicas utilizadas**
 
 - [CWE-311 – Lack of Encryption in Data Transmission](https://cwe.mitre.org/data/definitions/311.html)
   Se observa que la comunicación entre los nodos IoT y el servidor mediante el protocolo MQTT no utiliza cifrado TLS, lo que permite interceptar, leer o manipular los datos transmitidos.
@@ -112,7 +112,7 @@ Luego de haber recolectado suficiente información sobre la infraestructura y lo
 - [T1587.001 – Develop Capabilities: Malware](https://attack.mitre.org/techniques/T1587/001/)
   El atacante diseña una herramienta personalizada que simula el comportamiento de un nodo legítimo, capaz de enviar datos ambientales manipulados al sistema objetivo.
 
-🔧 Acciones realizadas
+🔧 **Acciones realizadas**
 
 Tras analizar el comportamiento del sistema, el atacante decide no comprometer físicamente los dispositivos, sino emular un nodo IoT que transmita datos maliciosos al broker MQTT. Para ello, desarrolla un script en Python que se hace pasar por uno de los nodos del sistema, utilizando las estructuras de datos y los tópicos identificados en la fase anterior.
 
@@ -151,7 +151,7 @@ while True:
 
 Una vez desarrolladas las herramientas para simular un nodo IoT malicioso, el atacante procederá a su despliegue, integrándolo dentro de la red de comunicaciones del sistema objetivo. La entrega del ataque se realiza mediante la publicación de datos falsificados hacia el brocker MQTT del sistea, simulando de forma convincente el comportamiento de un nodo legítimo.
 
-⚙️ Técnicas utilizadas
+⚙️ **Técnicas utilizadas**
 
 - [T1565.002 – Data Manipulation: Network Traffic Manipulation](https://attack.mitre.org/techniques/T1565/002/)
 
@@ -160,7 +160,7 @@ Una vez desarrolladas las herramientas para simular un nodo IoT malicioso, el at
 
   Se inyectan datos falsos con apariencia válida, con el fin de engañar al sistema de monitoreo y alterar su percepción de las condiciones ambientales.
 
-🔧 Acciones realizadas
+🔧 **Acciones realizadas**
 
 El atacante configura un entorno desde el cual se peuda emular un nodo IoT se conecta al mismo brocker MQTT utilizado por el sistema. Aprovechando la falta de autentificación estricta en el brocker y a la carencia de cifrado en la transmisión, logra establecer conexión sin restricciones aparentes.
 
@@ -168,7 +168,7 @@ El nodo malicioso comienza a publicar datos que simulan condiciones normales o c
 
 Reforzar la manipulación, requerirá de implementar un mecanismo de inyección intermitente de ruido ambiental, valores ligeramente alterados que simulan fluctuaciones normales en la calidad del aire. Esta técnica reduce la capacidad de los administradores para distinguir entre lecturas reales y maliciosas, disminuyendo la efectividad de los algoritmos de alerta.
 
-📡 Escenario de entrega
+📡 **Escenario de entrega**
 
 El ataque puede desplegarse desde distintos entornos según el objetivo:
 
@@ -182,7 +182,7 @@ Esta fase de entrega es crítica, ya que define la forma en que el sistema será
 
 Una vez entregado el nodo malicioso al sistema, el atacante ejecutará la explotación de las debilidades previamente identificadas en la infraestructura del sistema de monitoreo. En esta etapa, su objetivo es lograr que los datos falsificados sean aceptados como válidos por el sistema, sin activar mecanismos de alerta ni generar sospechas por parte de los administradores.
 
-⚙️ Técnicas utilizadas
+⚙️ **Técnicas utilizadas**
 
 - [CWE-345 – Insufficient Verification of Data Authenticity](https://cwe.mitre.org/data/definitions/345.html)
 
@@ -194,7 +194,7 @@ Una vez entregado el nodo malicioso al sistema, el atacante ejecutará la explot
 
   El atacante fuerza al sistema backend a procesar entradas manipuladas como si fueran datos válidos generados por los sensores.
 
-🔧 Acciones realizadas
+🔧 **Acciones realizadas**
 
 El atacante publica mensajes cuidadosamente elaborados en el tópico MQTT correspondiente a uno de los nodos legítimos. Los mensajes incluyen lecturas ambientales falsas, generadas con valores que simulan condiciones normales o incluso condiciones anómalas según el objetivo final.
 
@@ -206,7 +206,7 @@ Esta explotación permite modificar la percepción que el sistema tiene de la ca
 - Generar falsas alertas, simulando aumentos artificiales de CO₂ o partículas PM2.5.
 - Distorsionar los datos históricos, afectando análisis de tendencias o reportes.
 
-💡 Impacto de la explotación
+💡 **Impacto de la explotación**
 
 El atacante tiene su objetivo claro para atacar el sistema y de seguro esperará cierto impacto para sentirse satisfecho, pudiendo ser:
 
@@ -218,7 +218,7 @@ El atacante tiene su objetivo claro para atacar el sistema y de seguro esperará
 
 Luego de lograr la inyección exitosa de datos manipulados en el sistema, el atacante establece un canal de control y monitoreo continuo sobre el nodo falso. Esta fase le permite ajustar el comportamiento del dispositivo emulado, mantener la persistencia del ataque y reaccionar ante posibles medidas de mitigación implementadas por los administradores del sistema.
 
-⚙️ Técnicas utilizadas
+⚙️ **Técnicas utilizadas**
 
 - [T1071.001 – Application Layer Protocol: Web Protocols](https://attack.mitre.org/techniques/T1071/001/)
 
@@ -232,7 +232,7 @@ Luego de lograr la inyección exitosa de datos manipulados en el sistema, el ata
 
   En caso de ser bloqueado el canal principal, el atacante dispone de un servidor web externo que actúa como backup para mantener el control sobre el nodo malicioso.
 
-🔧 Acciones realizadas
+🔧 **Acciones realizadas**
 
 El atacante establece un script de control remoto que monitorea el estado del nodo falso desde un servidor externo. A través de este canal, puede actualizar en tiempo real:
 
@@ -244,7 +244,7 @@ Para evitar la detección, encapsula los comandos de control dentro de mensajes 
 
 También implementa mecanismos de auto-reconexión y resistencia a reinicios, lo que garantiza que el nodo falso se mantenga operativo y conectado incluso si hay cortes breves o acciones defensivas básicas.
 
-💡 Persistencia y adaptabilidad
+💡 **Persistencia y adaptabilidad**
 
 Este canal de comando y control otorga al atacante la capacidad de:
 
@@ -258,7 +258,7 @@ Con esta etapa completada, el atacante mantiene el control activo sobre la opera
 
 Con el nodo malicioso operativo y el canal de control consolidado, el atacante inicia las acciones finales sobre el sistema, orientadas a afectar directamente sus funciones críticas, manipular los resultados y explotar la infraestructura comprometida para objetivos secundarios. Estas acciones varían en función del propósito estratégico definido: sabotaje, desinformación, o utilización encubierta de recursos.
 
-⚙️ Técnicas utilizadas
+⚙️ **Técnicas utilizadas**
 
 - [T1565.002 – Data Manipulation: Network Traffic Manipulation](https://attack.mitre.org/techniques/T1565/002/)
 
@@ -273,7 +273,7 @@ Con el nodo malicioso operativo y el canal de control consolidado, el atacante i
   Se utiliza el dispositivo comprometido como nodo de una botnet para operaciones externas, como túneles de tráfico, ataques distribuidos o persistencia dentro de otras redes.
 
 
-🔧 Acciones realizadas
+🔧 **Acciones realizadas**
 
 El atacante ejecuta distintas tácticas sobre el sistema comprometido:
 
@@ -300,7 +300,7 @@ El atacante ejecuta distintas tácticas sobre el sistema comprometido:
   - Almacenamiento oculto de información ilegal o robada, utilizando la base de datos o el almacenamiento de logs.
   - Implementación de un cliente de criptominería ligera, aprovechando el uso constante de energía eléctrica del nodo para generar ganancias sin levantar sospechas.
 
-💥 Resultado del ataque
+💥 **Resultado del ataque**
 
 Como consecuencia de estas acciones, el atacante logra:
 
@@ -310,7 +310,85 @@ Como consecuencia de estas acciones, el atacante logra:
 
   Como resultado, la infraestructura del sistema comienza a trabajar en segundo plano para fines no previstos, sin interferir directamente en su función principal, lo que hace más difícil su detección.
 
+🧨 **Ejemplo – Sabotaje controlado (DoS suave)**
+
+Este script inunda el broker MQTT con publicaciones rápidas, duplicadas o ruido constante, afectando el procesamiento y la capacidad de respuesta del sistema.
+```script
+broker = "192.168.1.100"
+topic = "sensores/aire/nodo_03"
+
+cliente = mqtt.Client("nodo_flooder")
+cliente.connect(broker, 1883, 60)
+
+# Publica basura o datos redundantes muy seguido
+while True:
+    payload = json.dumps({
+        "pm25": random.uniform(5, 5.2),
+        "co2": random.uniform(399, 401),
+        "voc": random.uniform(0.2, 0.3),
+        "temperatura": random.uniform(21, 23),
+        "humedad": random.uniform(45, 55)
+    })
+    cliente.publish(topic, payload)
+    print(f"⚠️ Publicando en exceso: {payload}")
+    time.sleep(0.5) # Alta frecuencia
+```
 
 ## 🔀 **Flujos del ataque**
 
+El atacante ejecuta el ataque en una secuencia estructurada, respetando las fases metodológicas de la Cyber Kill Chain. Cada fase es cuidadosamente planificada para mantener un bajo perfil, evadir mecanismos de detección y maximizar el impacto sobre el sistema objetivo.
+
+```flujo
+1. [Reconocimiento]
+   ↓
+   Analiza la arquitectura del sistema, tecnologías empleadas (LoRaWAN, MQTT, WiFi, ESP32) y posibles vectores de ataque.
+   Identifica tópicos MQTT, APIs expuestas y ausencia de cifrado.
+
+2. [Armado del ataque]
+   ↓
+   Desarrolla un script en Python que simula un nodo IoT legítimo.
+   Configura payloads manipulados que aparentan ser datos reales (PM2.5, CO₂, VOCs, etc.).
+
+3. [Entrega del ataque]
+   ↓
+   Publica datos falsificados en el broker MQTT mediante el nodo simulado.
+   Inyecta información sin activar alertas ni ser detectado por la interfaz de monitoreo.
+
+4. [Explotación de la vulnerabilidad]
+   ↓
+   Aprovecha la falta de validación de origen de datos y ausencia de cifrado.
+   Logra que el sistema procese, almacene y visualice los datos maliciosos como si fueran auténticos.
+
+5. [Comando y Control (C2)]
+   ↓
+   Mantiene comunicación remota con el nodo falso.
+   Ajusta los parámetros del ataque en tiempo real y responde a eventos defensivos.
+
+6. [Acción sobre el objetivo]
+   ↓
+   Manipula las tendencias históricas de calidad del aire, suprime alertas, genera datos engañosos.
+   Utiliza el sistema como proxy encubierto, punto de pivote y posible bot para operaciones futuras.
+```
+Este flujo resume la lógica del ataque y permite visualizar de manera compacta cómo se encadenan las acciones para alcanzar el objetivo: comprometer la confiabilidad, disponibilidad y legitimidad del sistema de monitoreo ambiental, mientras se ocultan rastros y se explotan recursos de manera persistente.
+
 ## 🧠 **Conclusiones**
+
+Mediante una aplicación estructurada de la metodología Cyber Kill Chain, el atacante consigue comprometer tanto la integridad como la confiabilidad del sistema IoT destinado al monitoreo de la calidad del aire. Para lograrlo, se apoya en debilidades presentes en los mecanismos de comunicación, autenticación y validación de datos del sistema.
+
+A lo largo del ejercicio se pone en evidencia cómo un actor malicioso, con la planificación adecuada, es capaz de:
+
+- Emular un nodo IoT legítimo, imitando con precisión el comportamiento de los sensores originales para integrarse al ecosistema sin levantar sospechas.
+- Alterar la percepción ambiental, inyectando valores manipulados que pueden distorsionar decisiones técnicas, regulatorias o sociales basadas en esos datos.
+- Explotar la infraestructura comprometida para fines ocultos, como canal de anonimización de tráfico, almacenamiento de datos ilícitos o incluso como parte de una red de bots.
+- Mantener el control a largo plazo, utilizando un canal de comando y control para ajustar dinámicamente la operación del nodo malicioso en función de la situación.
+
+Este ataque no se apoya en vulnerabilidades complejas ni requiere acceso físico a los dispositivos. Su efectividad se basa en el uso inteligente de técnicas conocidas de reconocimiento, análisis de red y manipulación de protocolos abiertos como MQTT, combinadas con herramientas accesibles públicamente.
+
+El escenario permite reflexionar sobre los riesgos reales que enfrentan los sistemas IoT cuando se prioriza la funcionalidad por sobre la seguridad. En estos entornos, la falta de controles robustos puede convertir una red diseñada para el bienestar social en una puerta de entrada silenciosa para actores con fines completamente opuestos.
+
+## 🥇 **Autor**
+
+- Ing. Rodrigo Jurgen Pinedo Nava
+- Universidad de Buenos Aires (UBA)
+- Facultad de Ingeniería
+- Especialización en Internet de las Cosas (IoT)
