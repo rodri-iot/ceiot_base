@@ -1,4 +1,4 @@
-# Ejercicio CiberKillChain - Ataque
+# Ejercicio CiberKillChain - Defensa
 
 ## 📈 **Sistema de monitoreo de calidad del aire**
 
@@ -15,7 +15,6 @@
   - [5. Entrega del ataque (Delivery)](#3-entrega-del-ataque-delivery)
   - [6. Armado del ataque (Weaponization)](#2-armado-del-ataque-weaponization)
   - [7. Reconocimiento (Reconnaissance)](#1-reconocimiento-reconnaissance)
-- [🔀 **Diagrama de Flujos de la defensa**](#-flujos-de-la-defensa)
 - [🧠 **Conclusiones**](#-conclusiones)
 - [🥇 **Autor**](#autor)
 
@@ -168,82 +167,125 @@ Estas defensas permiten:
 - Impedir que datos falsos sean aceptados incluso si el canal MQTT está protegido por TLS.
 - Reforzar la autenticidad del contenido, no solo del canal.
 
-### **5. Instalación (Installation)**
+### **5. Entrega del ataque (Delivery)
 
-En esta etapa, el atacante consolida la presencia del nodo falsificado dentro de la infraestructura del sistema, asegurando su permanencia, estabilidad y resistencia frente a actualizaciones, reinicios o inspecciones técnicas superficiales. A través de decisiones deliberadas de configuración y diseño del firmware, el nodo es instalado de forma tal que pueda operar a largo plazo sin depender de intervención constante ni generar señales visibles de alteración.
+El atacante reemplaza el nodo físico original por uno con firmware malicioso.
+
+🔍 **Medida de detección**
+- [DS0007 – Device Metadata](https://attack.mitre.org/datasources/DS0007/)
+Permite monitorear atributos del hardware del dispositivo, como dirección MAC, número de serie, fingerprint del chip, etc.
+
+Implementación:
+
+- Al reconectar un nodo tras tareas de campo, validar: dirección MAC, UID del microcontrolador, RSSI o fingerprint RF esperado.
+- Si alguno de estos parámetros difiere del original asociado al certificado, se bloquea la conexión y se alerta.
+- Capturar la huella de cada nodo durante la instalación original y compararla en cada reconexión futura.
+
+🛠️ **Medida de mitigación**
+- [CWE-288 – Authentication Bypass Using an Alternate Path or Channel](https://cwe.mitre.org/data/definitions/288.html)
+El nodo falsificado está usando una vía válida (certificados TLS) pero no autorizada a nivel físico/lógico.
+
+Implementación:
+- Todo nodo que es reinsertado o reemplazado debe pasar por un proceso de verificación reforzado: validación de firma de firmware, confirmación de ubicación física, validación de campos extendidos (build ID, firmware version, logs de boot)
+- Hasta completar esa validación, el nodo no publica datos al flujo principal, sino que entra en cuarentena.
+- Al menos exigir confirmación manual vía consola de backend antes de permitir que un nuevo nodo comience a publicar en producción.
 
 
+### **6. Armado del ataque (Weaponization)**
 
-### **6. Comando y Control (C2)**
+El atacante prepara su ofensiva construyendo un firmware malicioso
 
-Tras haber logrado la instalación persistente del nodo manipulado, el atacante implementa un canal de Comando y Control (C2) que le permite supervisar, ajustar y reconfigurar remotamente el comportamiento del dispositivo comprometido. El objetivo es mantener una operación encubierta a largo plazo, pero con la posibilidad de adaptar el patrón de datos transmitido ante auditorías, cambios en el entorno o evolución del sistema de monitoreo.
+🔍 **Medida de detección**
+- [DS0022 – File Access]()
+Permite detectar quién descarga firmware y con qué frecuencia, ayudando a identificar intentos de replicación o ingeniería inversa.
+- [DS0029 – Network Traffic Content]()
+Adecuada para detectar contenido anómalo en el tráfico MQTT, como estructuras de mensajes inesperadas o tópicos no estándar usados por firmware falsificado.
 
 
+Implementación:
+
+Registrar y analizar:
+
+- Quién descarga firmware (cuenta/IP).
+- Cantidad de descargas por archivo.
+- Tiempos de descarga (horarios, fines de semana).
+- Conexiones MQTT desde nodos “de laboratorio” que:
+  - Publican con certificados conocidos pero desde MACs distintas.
+  - Usan tópicos inconsistentes o modifican estructura de mensajes (campos extra como cmd, meta, etc.).
+
+
+🛠️ **Medida de mitigación**
+- [CWE-347 – Improper Verification of Cryptographic Signature]()
+El riesgo principal en esta etapa es que el firmware malicioso se cargue sin validación adecuada de su integridad y origen.
+
+Implementación:
+- Incluir una firma HMAC interna generada en el backend.
+- Verificar en el backend al iniciar sesión MQTT.
+- Comparar contra una whitelist de hashes autorizados.
+- Firmware sólo distribuido vía OTA (Over-the-Air), debiendo estar registrada, firmada y auditada.
+
+✅ **Resultado**
+Estas medidas permiten a Monitoreo de Aire Co.:
+- Detectar preparación temprana del ataque, antes del despliegue físico.
+- Prevenir ejecución de firmware falsificado, incluso si el canal MQTT y el certificado TLS son válidos.
+- Cerrar el vector de ingeniería inversa, restringiendo el acceso a firmware y estructuras internas.
 
 ### **7. Acción sobre el objetivo (Actions on objetives)**
 
-Con el nodo manipulado instalado y gestionado mediante un canal de comando y control encubierto, el atacante ejecuta las acciones destinadas a alcanzar su objetivo principal: alterar las mediciones ambientales de forma sistemática y persistente, con el fin de proyectar una imagen ambiental falsa que oculte emisiones reales y mantenga la fachada de cumplimiento normativo.
+El cliente malicioso accede a documentación técnica, configuraciones del sistema, tráfico de red, firmware, esquemas de tópicos MQTT, e incluso a certificados TLS propios.
 
-Estas acciones se diseñan para mantenerse bajo el umbral de detección, adaptarse dinámicamente al entorno y alimentar con datos falsos todos los subsistemas que confían en la información proveniente del sensor.
+🔍 **Medida de detección**
+Monitoreo de uso anómalo de APIs y análisis de comportamiento en portales técnicos
+- [DS0024 – Web Application Log]()
+- [DS0009 – Process (adaptado a entorno IoT)]()
 
+Implementación:
 
+Registrar:
+- Consultas repetitivas o automatizadas a endpoints sensibles (/config, /api/devices, /certs, /firmware).
+- Comportamientos inusuales como:
+  - Descargas excesivas de documentos técnicos.
+  - Exploración de APIs con herramientas como Postman o curl.
+  - Pruebas de conexión a tópicos MQTT alternativos.
+Una consulta API fuera de patrón normal (frecuencia alta, parámetros sospechosos) desde una cuenta cliente debería activar una alerta de auditoría.
 
-## 🔀 **Flujos del ataque**
+🛠️ **Medida de mitigación**
+Principio de mínimo privilegio + segmentación de acceso técnico
+- [CWE-284 – Improper Access Control]()
 
-El atacante ejecuta el ataque en una secuencia estructurada, respetando las fases metodológicas de la Cyber Kill Chain. Cada fase es cuidadosamente planificada para mantener un bajo perfil, evadir mecanismos de detección y maximizar el impacto sobre el sistema objetivo.
+Implementación:
 
-```flujo
-1. [Reconocimiento]
-   ↓
-   Se analiza la arquitectura del sistema adquirido: nodos ESP32-S3, comunicación MQTT sobre TLS, despliegue en GCP.
-   Se identifican certificados, tópicos de publicación y formato de payloads aceptados.
+Separar entornos: lo que necesita el cliente no es lo mismo que necesita el equipo técnico.
+- Los clientes solo deben tener acceso a:
+  - Visualización de datos.
+  - Paneles limitados de monitoreo.
+  - Certificados generados exclusivamente para sus nodos.
+- No deben tener acceso a firmware completo, esquema completo de tópicos, herramientas de debug, ni documentación avanzada.
+- Implementar roles granulares en la plataforma:
+  - "Cliente estándar" vs. "Administrador técnico".
+  - Limitar APIs según perfil autenticado.
+- Asegurar que la documentación sensible y firmware estén detrás de login técnico o requerimiento explícito de soporte, no disponibles por defecto.
 
-2. [Armado del ataque]
-   ↓
-   Se desarrolla firmware malicioso para un nodo clonado.
-   El nodo simula condiciones ambientales normales con datos ajustables dinámicamente.
+✅ **Resultado**
+Estas defensas permiten:
+- Detectar el inicio de la cadena de ataque, cuando el atacante aún está explorando.
+- Limitar la información crítica que se expone a los clientes, incluso si tienen acceso legítimo.
+- Reducir el riesgo de ingeniería inversa del sistema, sin comprometer la funcionalidad del servicio.
 
-3. [Entrega del ataque]
-   ↓
-   Se reemplaza físicamente un nodo original por el falsificado durante tareas de mantenimiento.
-   El nodo se conecta al broker MQTT con certificados válidos y comienza a emitir datos manipulados.
-
-4. [Explotación]
-   ↓
-   El sistema acepta los datos como legítimos debido a la falta de validación de integridad y origen.
-   Se almacenan en la base de datos y se visualizan en dashboards y reportes sin levantar alertas.
-
-5. [Instalación]
-   ↓
-   El firmware garantiza persistencia tras reinicios, mimetiza comportamiento del nodo original
-   y mantiene configuraciones de publicación automáticas.
-
-6. [Comando y Control (C2)]
-   ↓
-   Se establece un canal oculto dentro de MQTT para ajustar en tiempo real los valores reportados.
-   También se incorpora un canal alternativo HTTP como fallback para administración remota.
-
-7. [Acción sobre el objetivo]
-   ↓
-   Se falsifican las mediciones ambientales, afectando decisiones regulatorias y percepción pública.
-   Se distorsiona el histórico, se evitan alertas y se sostiene una imagen de cumplimiento ambiental.
-
-```
-Este flujo resume la lógica del ataque y permite visualizar de manera compacta cómo se encadenan las acciones para alcanzar el objetivo: comprometer la confiabilidad, disponibilidad y legitimidad del sistema de monitoreo ambiental, mientras se ocultan rastros y se explotan recursos de manera persistente.
 
 ## 🧠 **Conclusiones**
 
-El ejercicio demuestra cómo un atacante con acceso legítimo al sistema puede comprometer su confiabilidad sin necesidad de explotar vulnerabilidades técnicas complejas. A través de la sustitución encubierta de un nodo IoT, la manipulación de datos y el uso de canales de control persistente, se logra alterar la percepción ambiental sin ser detectado.
+La defensa implementada por Monitoreo de Aire Co. demuestra que es posible detectar y mitigar un ataque interno, incluso cuando el atacante posee acceso legítimo al sistema.
 
-El éxito del ataque se basa en:
+Las medidas clave incluyeron:
 
-La confianza excesiva en certificados y canales cifrados como únicos mecanismos de autenticación.
+- Correlación de datos entre nodos para detectar manipulaciones persistentes.
+- Verificación criptográfica del firmware y validación de identidad física del nodo.
+- Control estricto de certificados y firmas para evitar suplantaciones.
+- Monitoreo de comportamiento anómalo en APIs y tráfico MQTT.
+- Restricción de acceso a documentación y firmware según el perfil del cliente.
 
-La ausencia de validación de integridad y origen de los datos.
-
-La falta de correlación entre dispositivos, ubicación física y métricas reportadas.
-
-Como resultado, el sistema sigue operativo, pero entrega información manipulada que distorsiona decisiones regulatorias, técnicas y sociales. El caso evidencia el riesgo real que implica no incorporar controles de seguridad integrales en entornos IoT críticos.
+Con controles aplicables y de bajo costo, se logra reducir la superficie de ataque y proteger la integridad del sistema frente a actores internos que intenten manipular las mediciones.
 
 ## 🥇 **Autor**
 
