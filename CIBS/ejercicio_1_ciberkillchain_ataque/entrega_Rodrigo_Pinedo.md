@@ -12,7 +12,7 @@
   - [2. Armado del ataque (Weaponization)](#2-armado-del-ataque-weaponization)
   - [3. Entrega del ataque (Delivery)](#3-entrega-del-ataque-delivery)
   - [4. Explotación de la vulnerabilidad (Exploitation)](#4-explotación-de-la-vulnerabilidad-exploitation)
-  - [5. Instalación](#5-instalacion-installation)
+  - [5. Instalación (Installation)](#5-instalacion-installation)
   - [6. Comando y Control (C2)](#6-comando-y-control-c2)
   - [7. Acción sobre el objetivo (Actions on objetives)](#7-acción-sobre-el-objetivo-acctions-on-objetives)
 - [🔀 **Diagrama de Flujos del ataque**](#-flujos-del-ataque)
