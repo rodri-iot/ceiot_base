@@ -81,136 +81,174 @@ Este reconocimiento interno proporciona al atacante toda la información necesar
 
 ### **2. Armado del ataque (Weaponization)**
 
-Luego de haber recolectado suficiente información sobre la infraestructura y los servicios involucrados en el sistema de monitoreo de calidad del aire, el atacante comenzará a preparar las herramientas y cargas maliciosas necesarias para comprometer el entorno. En esta etapa, se enfoca en explotar debilidades específicas detectadas en la comunicación entre dispositivos IoT y el servidor central.
+Con pleno conocimiento de la arquitectura y acceso legítimo a la infraestructura, el atacante comienza a preparar los recursos técnicos necesarios para llevar a cabo la manipulación de datos sin levantar alertas ni interferir con la operatividad normal del sistema. Su estrategia consiste en desarrollar un nodo malicioso, indistinguible de los sensores originales, capaz de publicar datos ambientales falsificados hacia el broker MQTT bajo las mismas condiciones del tráfico legítimo.
+
+A diferencia de un ataque externo, aquí no se requiere evasión de controles de acceso, sino la reproducción fiel del comportamiento esperado por el sistema, apoyándose en certificados válidos, tópicos autorizados y formatos de datos aceptados.
 
 ⚙️ **Técnicas utilizadas**
 
-- [CWE-311 – Lack of Encryption in Data Transmission](https://cwe.mitre.org/data/definitions/311.html)
-  Se observa que la comunicación entre los nodos IoT y el servidor mediante el protocolo MQTT no utiliza cifrado TLS, lo que permite interceptar, leer o manipular los datos transmitidos.
-- [CWE-345 – Insufficient Verification of Data Authenticity](https://cwe.mitre.org/data/definitions/345.html)
-  El servidor no verifica la autenticidad de los datos que recibe desde los sensores, permitiendo la inyección de información falsa sin mecanismos robustos de validación.
-- [T1587.001 – Develop Capabilities: Malware](https://attack.mitre.org/techniques/T1587/001/)
-  El atacante diseña una herramienta personalizada que simula el comportamiento de un nodo legítimo, capaz de enviar datos ambientales manipulados al sistema objetivo.
+- [T1587.001 – Develop Capabilities: Malware]()
+El atacante desarrolla un cliente MQTT personalizado que simula un nodo legítimo, generando datos manipulados bajo las credenciales y certificados existentes.
+- [CWE-345 – Insufficient Verification of Data Authenticity]()
+Se aprovecha la falta de validación de origen o integridad de los datos en el backend para introducir información falsificada como si fuera legítima.
+- [CWE-306 – Missing Authentication for Critical Function]()
+Se explota la posibilidad de enviar datos a tópicos críticos sin verificación adicional de dispositivo o rol, más allá del uso de TLS.
+- [T1584.001 – Compromise Infrastructure: Device Installation]()
+El atacante modifica o reemplaza nodos físicos por dispositivos controlados que cumplen la función de emisión encubierta de datos falsos.
+
+
 
 🔧 **Acciones realizadas**
 
-Tras analizar el comportamiento del sistema, el atacante decide no comprometer físicamente los dispositivos, sino emular un nodo IoT que transmita datos maliciosos al broker MQTT. Para ello, desarrolla un script en Python que se hace pasar por uno de los nodos del sistema, utilizando las estructuras de datos y los tópicos identificados en la fase anterior.
+- Desarrollo de un cliente MQTT malicioso: se construye un script en Python utilizando la librería paho-mqtt, configurado con el mismo certificado TLS del nodo original y enlazado al mismo tópico de publicación. El script permite:
+  - Generar valores ambientales dentro de rangos normales o ideales.
+  - Ajustar dinámicamente los parámetros según los objetivos del ataque.
+  - Publicar a la misma frecuencia y con la misma estructura de payload que los sensores originales.
+- Clonación de un nodo real: se prepara un ESP32-S3 con firmware modificado para comportarse como un nodo legítimo pero reportar datos falsificados. Este puede instalarse físicamente en reemplazo de un sensor real o funcionar en paralelo como un nodo “fantasma” invisible para los usuarios.
+- Emulación de tráfico legítimo
+El script malicioso replica encabezados, estructura de JSON y ritmo de publicación del sensor real, de modo que el backend procese los datos sin anomalías aparentes.
+- Instrumentación de control local o remoto: se incorpora un archivo de configuración o canal de control (por ejemplo, un archivo .env o una API oculta) para modificar los valores simulados en tiempo real, permitiendo adaptar el comportamiento del nodo falso ante auditorías o cambios en el entorno.
 
-Este script permite publicar mensajes falsificados con valores normalizados, diseñados para evadir alertas o generar condiciones ambientales falsas según la estrategia del atacante. Al mantener un perfil de tráfico coherente, el nodo emulado puede pasar desapercibido en el flujo normal de comunicaciones.
+🧪 Ejemplo: script de publicación maliciosa
+``` Script de publicación maliciosa
+import paho.mqtt.client as mqtt
+import ssl
+import json
+import time
 
-🧪 Ejemplo: simulación de nodo MQTT malicioso
-``` Codigo simulación de nodo MQTT
-broker_ip = "192.168.1.100"  # Dirección IP del broker MQTT objetivo
-topic = "sensores/aire/nodo_03"
+broker = "mqtt.airepuro-sensor.com"
+port = 8883
+topic = "datos/ambiente/nodo_05"
+client_cert = "certs/nodo05-client.pem"
+client_key = "certs/nodo05-key.pem"
+ca_cert = "certs/ca.pem"
+
+client = mqtt.Client("nodo_falsificado")
+client.tls_set(ca_cert, certfile=client_cert, keyfile=client_key, tls_version=ssl.PROTOCOL_TLSv1_2)
+client.connect(broker, port)
 
 def generar_datos_falsos():
     return json.dumps({
-        "pm25": round(random.uniform(2.0, 10.0), 2),
-        "co2": round(random.uniform(350, 600), 2),
-        "voc": round(random.uniform(0.1, 0.5), 2),
-        "temperatura": round(random.uniform(20, 25), 2),
-        "humedad": round(random.uniform(40, 60), 2)
+        "pm25": 4.2,
+        "co2": 390.5,
+        "voc": 0.12,
+        "temperatura": 21.8,
+        "humedad": 45.6
     })
-
-cliente = mqtt.Client("nodo_falso_aire")
-cliente.connect(broker_ip, 1883, 60)
 
 while True:
     payload = generar_datos_falsos()
-    cliente.publish(topic, payload)
-    print(f"Payload enviado: {payload}")
-    time.sleep(5)
+    client.publish(topic, payload)
+    print(f"Publicado: {payload}")
+    time.sleep(10)
+
 ```
+Se puede mejorar este script para simular comportamientos reales.
+
+✅ **Resultado del armado**
+El atacante ahora dispone de un nodo falso completamente funcional, indistinguible del tráfico legítimo tanto en formato como en autenticación. Este nodo puede ser desplegado físicamente o ejecutado desde una instancia remota. El sistema de monitoreo no tiene forma de validar si los datos publicados reflejan condiciones reales o simuladas, lo que permite iniciar la siguiente fase del ataque con alto grado de persistencia y sigilo.
 
 ### **3. Entrega del ataque (Delivery)**
 
-Una vez desarrolladas las herramientas para simular un nodo IoT malicioso, el atacante procederá a su despliegue, integrándolo dentro de la red de comunicaciones del sistema objetivo. La entrega del ataque se realiza mediante la publicación de datos falsificados hacia el brocker MQTT del sistea, simulando de forma convincente el comportamiento de un nodo legítimo.
+Con el nodo falsificado ya desarrollado y validado para simular el comportamiento de un sensor real, el atacante procede a su integración física dentro del sistema. Esta fase consiste en sustituir un nodo legítimo por uno modificado que emite mediciones falsas, aprovechando el acceso operativo que posee la empresa sobre su propia infraestructura de monitoreo.
+
+La entrega se realiza de manera discreta durante una intervención técnica habitual —como tareas de calibración, mantenimiento preventivo o reemplazo por fallo— lo que permite introducir el nuevo dispositivo sin generar alertas ni sospechas.
 
 ⚙️ **Técnicas utilizadas**
 
 - [T1565.002 – Data Manipulation: Network Traffic Manipulation](https://attack.mitre.org/techniques/T1565/002/)
+Inyección de datos falsificados en el flujo normal de comunicación mediante la publicación de valores manipulados en tópicos MQTT autorizados.
+- [T1200 – Hardware Additions](https://attack.mitre.org/techniques/T1200/)
+Sustitución de un sensor legítimo por uno manipulado que simula ser original, pero opera bajo control del atacante.
+- [CWE-345 – Insufficient Verification of Data Authenticity](https://cwe.mitre.org/data/definitions/345.html)
+El sistema acepta como válidos los datos enviados por el nuevo nodo, ya que no se aplica verificación adicional más allá de la autenticación TLS.
 
-  Se manipula el flujo de datos transmitido a través del protocolo MQTT, alterando su contenido en tránsito o publicando directamente información fabricada.
-- [T1602 – Data Manipulation](https://attack.mitre.org/techniques/T1602/)
+🔧 **Modo de entrega**
+- Despliegue físico del nodo falsificado
+  - Se reemplaza un nodo ESP32-S3 original por una unidad idéntica pero con firmware modificado.
+  - El nuevo nodo se conecta a la red WiFi o LoRaWAN con el mismo certificado TLS y publica en el mismo tópico MQTT.
+  - La instalación se realiza durante tareas de mantenimiento o calibración, sin levantar sospechas operativas.
 
-  Se inyectan datos falsos con apariencia válida, con el fin de engañar al sistema de monitoreo y alterar su percepción de las condiciones ambientales.
+💡 **Alternativas al modo de entrega**
+- Entrega remota desde instancia en GCP o red interna
+  - El script Python desarrollado previamente se ejecuta como servicio persistente en una VM o contenedor dentro de GCP.
+  - Utiliza certificados legítimos y publica datos manipulados desde dentro de la infraestructura, evadiendo restricciones de red o firewall.
+  - Esta opción permite escalar el ataque sin intervención física, ideal para múltiples nodos simulados o automatización del fraude.
 
-🔧 **Acciones realizadas**
+- Inyección paralela (nodo fantasma)
+  - El nodo falsificado opera en paralelo al original, emitiendo datos desde el mismo tópico pero con valores controlados.
+  - Puede provocar colisión de datos, sobrescritura o engaño visual si el backend no controla la unicidad de origen.
+  - Esta técnica se aprovecha especialmente si el sistema no valida el número de serie del dispositivo, ni su geolocalización real.
 
-El atacante configura un entorno desde el cual se peuda emular un nodo IoT se conecta al mismo brocker MQTT utilizado por el sistema. Aprovechando la falta de autentificación estricta en el brocker y a la carencia de cifrado en la transmisión, logra establecer conexión sin restricciones aparentes.
+✅ **Resultado de la entrega**
 
-El nodo malicioso comienza a publicar datos que simulan condiciones normales o controladas del aire, evitando generar alertas. Estos datos falsificados son entregados en los mismo tópicos MQTT que utilizan los sensores legítimos, logrando así infiltrarse en el sistema sin ser detectado.
-
-Reforzar la manipulación, requerirá de implementar un mecanismo de inyección intermitente de ruido ambiental, valores ligeramente alterados que simulan fluctuaciones normales en la calidad del aire. Esta técnica reduce la capacidad de los administradores para distinguir entre lecturas reales y maliciosas, disminuyendo la efectividad de los algoritmos de alerta.
-
-📡 **Escenario de entrega**
-
-El ataque puede desplegarse desde distintos entornos según el objetivo:
-
-- Una red Wi-Fi local, si el atacante se encuentra físicamente cerca del sistema.
-- Una instancia en la nube, configurada como cliente MQTT remoto que publica periódicamente los datos falsos.
-- Un dispositivo de campo con conectividad LoRa o Wi-Fi, disfrazado como nodo adicional en la red.
-
-Esta fase de entrega es crítica, ya que define la forma en que el sistema será alimentado con datos alterados sin necesidad de comprometer directamente los sensores físicos ni los servidores. El uso de canales abiertos y la falta de verificación de integridad permiten al atacante integrarse en el flujo de datos de manera transparente.
+El nodo falsificado queda completamente integrado al sistema, operando en lugar del original. Su tráfico es legítimo a nivel de red, cifrado con TLS y validado con el certificado correspondiente. El backend procesa los datos como si provinieran de un sensor confiable, permitiendo al atacante comenzar la alteración sistemática de las métricas ambientales sin ser detectado.
 
 ### **4. Explotación de la vulnerabilidad (Exploitation)**
 
-Una vez entregado el nodo malicioso al sistema, el atacante ejecutará la explotación de las debilidades previamente identificadas en la infraestructura del sistema de monitoreo. En esta etapa, su objetivo es lograr que los datos falsificados sean aceptados como válidos por el sistema, sin activar mecanismos de alerta ni generar sospechas por parte de los administradores.
+Una vez instalado y en funcionamiento el nodo falsificado, el atacante inicia la explotación directa de las debilidades del sistema, logrando que los datos ambientales simulados sean procesados por la infraestructura como si provinieran de un sensor confiable. Esta etapa representa la validación efectiva del ataque: los datos falsos no solo son aceptados, sino que alimentan los dashboards, reportes y alertas del sistema sin activación de mecanismos de detección o rechazo.
 
 ⚙️ **Técnicas utilizadas**
 
 - [CWE-345 – Insufficient Verification of Data Authenticity](https://cwe.mitre.org/data/definitions/345.html)
-
-  El servidor no cuenta con mecanismos adecuados para verificar que los datos provienen de un dispositivo autorizado o que no han sido manipulados en tránsito.
+El sistema no aplica verificación de integridad ni autenticidad sobre los datos recibidos, lo que permite que el nodo falsificado emita información arbitraria sin ser detectado.
 - [CWE-306 – Missing Authentication for Critical Function](https://cwe.mitre.org/data/definitions/306.html)
-
-  El broker MQTT permite la publicación en tópicos sensibles sin requerir autenticación robusta o control de acceso por dispositivo.
+El backend acepta publicaciones en tópicos críticos sin controles adicionales más allá de la conexión TLS, confiando ciegamente en el canal.
 - [T1203 – Exploitation for Client Execution](https://attack.mitre.org/techniques/T1203/)
-
-  El atacante fuerza al sistema backend a procesar entradas manipuladas como si fueran datos válidos generados por los sensores.
+Aunque no se explota un fallo tradicional, el nodo manipulado ejecuta su función maliciosa de forma persistente, entregando datos falsificados que impactan en la lógica del sistema.
 
 🔧 **Acciones realizadas**
 
-El atacante publica mensajes cuidadosamente elaborados en el tópico MQTT correspondiente a uno de los nodos legítimos. Los mensajes incluyen lecturas ambientales falsas, generadas con valores que simulan condiciones normales o incluso condiciones anómalas según el objetivo final.
+- Publicación continua de datos falsificados por debajo de los niveles reales presentes en el entorno.
+- Simulación de variabilidad natural para evitar generar un patrón estático sospechoso.
+- Interacción con el backend sin anomalías técnicas.
+- Persistencia silenciosa el nodo manipulado permanece activo durante días o semanas sin generar alarmas ni auditorías.
 
-Debido a que el servidor no implementa controles para verificar la integridad de los datos (por ejemplo, mediante firmas digitales, tokens HMAC u otras formas de autenticación de origen), los paquetes son aceptados, procesados y almacenados en la base de datos como si provinieran de un sensor confiable.
+🎯 **Impacto de la explotación**
+El atacante logra un compromiso directo de la integridad del sistema. Los efectos inmediatos incluyen:
+- Desinformación ambiental: usuarios, entidades regulatorias y autoridades reciben datos falseados que reflejan condiciones inexactas o inexistentes.
+- Invalidez de registros históricos: las métricas almacenadas en la base de datos y utilizadas para reportes, análisis de tendencias o auditorías ya no son confiables.
+- Evita acciones correctivas: al no detectar condiciones reales de contaminación, se omiten medidas de mitigación o sanciones.
+- Apariencia de cumplimiento normativo: la empresa logra proyectar una imagen ambiental positiva, basada en datos adulterados.
 
-Esta explotación permite modificar la percepción que el sistema tiene de la calidad del aire en determinadas zonas. El atacante puede:
+✅ **Resultado de la explotación**
+Con la vulnerabilidad explotada exitosamente, el nodo falsificado se consolida como una fuente de datos aceptada por el sistema. La información manipulada pasa a formar parte del ciclo normal de operación, almacenamiento y visualización, engañando tanto a los usuarios como a los mecanismos de auditoría o fiscalización ambiental.
 
-- Suprimir alertas reales, enviando valores dentro de rangos normales para ocultar eventos contaminantes reales.
-- Generar falsas alertas, simulando aumentos artificiales de CO₂ o partículas PM2.5.
-- Distorsionar los datos históricos, afectando análisis de tendencias o reportes.
+### **5. Instalación**
 
-💡 **Impacto de la explotación**
-
-El atacante tiene su objetivo claro para atacar el sistema y de seguro esperará cierto impacto para sentirse satisfecho, pudiendo ser:
-
-- El sistema de monitoreo pierde confiabilidad, ya que las decisiones tomadas por los usuarios (ciudadanos, industrias, gobiernos) se basan en datos comprometidos.
-- Se habilita el camino para ataques posteriores, como sabotaje, extorsión o manipulación pública de la información ambiental.
-- Se posibilita el uso de la infraestructura como vector indirecto para atacar a otros sistemas (p. ej., a través de reportes falsos que activen protocolos automáticos de respuesta).
-
-### **5. Instalción**
-
-Tras lograr que el nodo malicioso sea aceptado por el sistema mediante la entrega y explotación de vulnerabilidades, el atacante consolida su presencia en la infraestructura de monitoreo, integrando su dispositivo falsificado como un nodo funcional más dentro de la red IoT.
+En esta etapa, el atacante consolida la presencia del nodo falsificado dentro de la infraestructura del sistema, asegurando su permanencia, estabilidad y resistencia frente a actualizaciones, reinicios o inspecciones técnicas superficiales. A través de decisiones deliberadas de configuración y diseño del firmware, el nodo es instalado de forma tal que pueda operar a largo plazo sin depender de intervención constante ni generar señales visibles de alteración.
 
 ⚙️ **Técnicas utilizadas**
-- [T1546 – Event Triggered Execution](https://attack.mitre.org/techniques/T1546/)
-El nodo falso es configurado para activarse periódicamente o ante eventos específicos del entorno, asegurando su operación continua sin interacción humana directa.
-- [T1053.005 – Scheduled Task/Job: Scheduled Task](https://attack.mitre.org/techniques/T1053/005/)
-El atacante programa el envío de datos falsificados a intervalos regulares, imitando el comportamiento esperado de un sensor legítimo.
-- T1136 – Create Account (equivalente conceptual en IoT)
-Se simula la creación o incorporación de un nuevo dispositivo legítimo dentro del ecosistema, sin requerir autorización central.
+- [T1546.008 – Event Triggered Execution: Accessibility Features](https://attack.mitre.org/techniques/T1546/008/)
+Se modifica el firmware del nodo para incluir funciones maliciosas persistentes que manipulan los datos reportados.
+- [T1070.006 – Indicator Removal on Host: Timestomp](https://attack.mitre.org/techniques/T1070/006/)
+Se oculta el rastro de la instalación modificando fechas de compilación o checksums del firmware, para evitar que se detecten cambios en auditorías técnicas.
+- [T1543.003 – Create or Modify System Process: Windows Service (análogo)](https://attack.mitre.org/techniques/T1543/003/)
+Se configura el nodo para que el script malicioso inicie automáticamente al encender el dispositivo, asegurando persistencia sin intervención.
 
 🔧 **Acciones realizadas**
-El atacante asegura que el nodo falsificado:
-- Publique de manera autónoma y periódica, con parámetros predefinidos o dinámicamente actualizables vía C2.
-- Sea persistente ante reinicios del sistema, configurando scripts de arranque o servicios permanentes si está desplegado sobre un dispositivo físico o virtual.
-- Imite el patrón de tráfico de los sensores reales, incluyendo tiempos, formatos de payload y tópicos MQTT válidos.
 
-Gracias a la ausencia de mecanismos de autenticación basados en certificados o listas blancas de dispositivos, el sistema acepta y mantiene la comunicación con el nodo malicioso sin emitir alertas.
+- Firmware personalizado con persistencia
+El nodo falsificado utiliza una versión modificada del firmware original, en la que se integran rutinas para:
+  - Generar datos falsos dentro de rangos saludables.
+  - Publicarlos en el broker MQTT utilizando los certificados del nodo reemplazado.
+  - Simular comportamiento "normal" (conectividad, latencia, respuesta a comandos).
 
-💡 **Resultado de la instalación**
-La instalación efectiva del nodo permite al atacante permanecer en el sistema durante largos periodos de tiempo, operar de forma encubierta y sostener el impacto del ataque sin necesidad de intervención constante. Este punto marca la consolidación de su presencia y da paso al control remoto y las acciones sobre los objetivos.
+- Validación contra chequeos superficiales
+  - El firmware mantiene el mismo identificador de versión que el original para evitar detección por sistemas de gestión remota o herramientas de inventario.
+  - Se ajustan los parámetros de respuesta (por ejemplo, indicadores de señal, batería o estado del nodo) para coincidir con los reportados previamente.
+- Resistencia ante reinicios o caídas
+  - El código incluye mecanismos de reconexión automática al broker MQTT y reintentos ante pérdida de conectividad.
+  - Se utiliza almacenamiento local para conservar el estado del nodo y asegurar continuidad en la simulación de datos tras interrupciones eléctricas o reinicios del microcontrolador.
+- Encubrimiento físico y operativo
+  - El hardware del nodo se mantiene visualmente idéntico al original (mismo casing, conectores, LEDs).
+  - Las rutinas de respuesta a comandos (por ejemplo, ping, telemetría de salud) son simuladas para responder de forma coherente ante pruebas de diagnóstico de terceros.
+
+✅ **Resultado de la instalación**
+
+El nodo falsificado se integra permanentemente al sistema, operando como cualquier otro dispositivo legítimo. Su persistencia está asegurada tanto a nivel físico como lógico, y su comportamiento ha sido cuidadosamente diseñado para no levantar alertas en rutinas de inspección operativa ni en análisis superficial de firmware o tráfico.
+
+Esta instalación es la base para sostener el impacto del ataque a largo plazo, permitiendo a la empresa manipuladora mantener una fachada de cumplimiento ambiental sin necesidad de intervención recurrente.
 
 ### **6. Comando y Control (C2)**
 
