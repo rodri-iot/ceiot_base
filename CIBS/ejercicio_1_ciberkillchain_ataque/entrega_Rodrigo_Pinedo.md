@@ -12,7 +12,7 @@
   - [2. Armado del ataque (Weaponization)](#2-armado-del-ataque-weaponization)
   - [3. Entrega del ataque (Delivery)](#3-entrega-del-ataque-delivery)
   - [4. Explotación de la vulnerabilidad (Exploitation)](#4-explotación-de-la-vulnerabilidad-exploitation)
-  - [5. Instalación](#5-instalation)
+  - [5. Instalación](#5-instalacion-installation)
   - [6. Comando y Control (C2)](#6-comando-y-control-c2)
   - [7. Acción sobre el objetivo (Actions on objetives)](#7-acción-sobre-el-objetivo-acctions-on-objetives)
 - [🔀 **Diagrama de Flujos del ataque**](#-flujos-del-ataque)
@@ -214,7 +214,7 @@ El atacante logra un compromiso directo de la integridad del sistema. Los efecto
 ✅ **Resultado de la explotación**
 Con la vulnerabilidad explotada exitosamente, el nodo falsificado se consolida como una fuente de datos aceptada por el sistema. La información manipulada pasa a formar parte del ciclo normal de operación, almacenamiento y visualización, engañando tanto a los usuarios como a los mecanismos de auditoría o fiscalización ambiental.
 
-### **5. Instalación**
+### **5. Instalación (Installation)**
 
 En esta etapa, el atacante consolida la presencia del nodo falsificado dentro de la infraestructura del sistema, asegurando su permanencia, estabilidad y resistencia frente a actualizaciones, reinicios o inspecciones técnicas superficiales. A través de decisiones deliberadas de configuración y diseño del firmware, el nodo es instalado de forma tal que pueda operar a largo plazo sin depender de intervención constante ni generar señales visibles de alteración.
 
