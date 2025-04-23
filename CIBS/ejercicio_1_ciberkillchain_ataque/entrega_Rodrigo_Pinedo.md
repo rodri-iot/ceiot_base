@@ -252,123 +252,87 @@ Esta instalación es la base para sostener el impacto del ataque a largo plazo, 
 
 ### **6. Comando y Control (C2)**
 
-Luego de lograr la inyección exitosa de datos manipulados en el sistema, el atacante establece un canal de control y monitoreo continuo sobre el nodo falso. Esta fase le permite ajustar el comportamiento del dispositivo emulado, mantener la persistencia del ataque y reaccionar ante posibles medidas de mitigación implementadas por los administradores del sistema.
+Tras haber logrado la instalación persistente del nodo manipulado, el atacante implementa un canal de Comando y Control (C2) que le permite supervisar, ajustar y reconfigurar remotamente el comportamiento del dispositivo comprometido. El objetivo es mantener una operación encubierta a largo plazo, pero con la posibilidad de adaptar el patrón de datos transmitido ante auditorías, cambios en el entorno o evolución del sistema de monitoreo.
 
 ⚙️ **Técnicas utilizadas**
 
 - [T1071.001 – Application Layer Protocol: Web Protocols](https://attack.mitre.org/techniques/T1071/001/)
-
-  El atacante utiliza protocolos de aplicación estándar (como HTTP o MQTT) para comunicarse con el nodo falso y enviarle comandos de actualización.
-
+Se utiliza MQTT o HTTP para encapsular comandos C2 dentro de tráfico de aplicación aparentemente legítimo.
 - [T1572 – Protocol Tunneling](https://attack.mitre.org/techniques/T1572/)
-
-  Las instrucciones de control son encapsuladas dentro de mensajes válidos de MQTT, evadiendo la detección por parte de mecanismos de monitoreo o filtrado de red.
-
+Los comandos de control se inyectan dentro de estructuras de datos válidas, lo que permite evadir reglas de inspección de paquetes y mantener el canal abierto sin ser detectado.
 - [T1008 – Fallback Channels](https://attack.mitre.org/techniques/T1008/)
-
-  En caso de ser bloqueado el canal principal, el atacante dispone de un servidor web externo que actúa como backup para mantener el control sobre el nodo malicioso.
+Se configura un canal alternativo —por ejemplo, HTTP POST hacia un servidor externo controlado por el atacante— en caso de bloqueo del canal primario por cambios defensivos.
 
 🔧 **Acciones realizadas**
 
-El atacante establece un script de control remoto que monitorea el estado del nodo falso desde un servidor externo. A través de este canal, puede actualizar en tiempo real:
+- Subsistema C2 dentro del firmware, el firmware del nodo falsificado incluye un componente de escucha pasiva en un tópico MQTT reservado (por ejemplo, control/nodo_05/cmd).
+- Codificación y evasión para evitar detección por patrones simples, los comandos C2 se encapsulan como campos adicionales del payload JSON, con nombres indistintos (debug, meta, ver, etc.), o se envían mediante paquetes ofuscados en formato Base64 o hexadecimal.
+- Canal alternativo HTTP como medida de respaldo, el nodo puede realizar peticiones periódicas tipo “ping” a un endpoint externo (por ejemplo, https://api.airepuro-c2.net/cmd) desde donde puede obtener nuevas configuraciones. Esto actúa como fallback si el canal MQTT es restringido por el backend o por políticas de red.
+- Control en tiempo real del comportamiento, el atacante puede modificar el script del nodo desde su consola remota para responder a inspecciones, cambiar el perfil de emisión (por ejemplo, simular un pico temporal de contaminación) o apagar la emisión ante eventos inesperados.
 
-- La frecuencia de publicación de datos.
-- Los valores simulados en cada métrica (PM2.5, CO₂, VOCs, etc.).
-- El comportamiento del nodo ante eventos del entorno (por ejemplo, al detectar actividad de administración o reconfiguración del sistema).
+🧩 **Ejemplo de comando encubierto**
+```
+{
+  "pm25": 4.1,
+  "co2": 390,
+  "voc": 0.12,
+  "cmd": "mode=silent;freq=60"
+}
 
-Para evitar la detección, encapsula los comandos de control dentro de mensajes MQTT aparentemente inofensivos o utiliza canales HTTP alternativos si detecta que el broker ha sido protegido o restringido.
+```
+El firmware del nodo intercepta el campo "cmd" y reconfigura sus rutinas internas sin afectar el resto del flujo.
 
-También implementa mecanismos de auto-reconexión y resistencia a reinicios, lo que garantiza que el nodo falso se mantenga operativo y conectado incluso si hay cortes breves o acciones defensivas básicas.
+✅ **Resultado del C2**
+- Con el canal de Comando y Control activo, el atacante:
+- Mantiene total capacidad de adaptación del nodo falsificado sin intervención física.
+- Reacciona rápidamente ante inspecciones técnicas o cambios en la política del sistema.
+- Reconfigura el patrón de datos para simular escenarios ambientales controlados o responder a eventos de forma dinámica.
+- Puede suspender temporalmente la operación del nodo para evitar exposición durante auditorías externas.
 
-💡 **Persistencia y adaptabilidad**
-
-Este canal de comando y control otorga al atacante la capacidad de:
-
-- Cambiar dinámicamente los objetivos del ataque (desinformar, ocultar, sabotear, utilizar información).
-- Evadir contramedidas implementadas de forma reactiva.
-- Reutilizar la infraestructura comprometida como plataforma para lanzar ataques hacia otros sistemas o redes.
-
-Con esta etapa completada, el atacante mantiene el control activo sobre la operación del nodo falsificado, pudiendo extender su campaña, escalar el ataque o pivotar hacia nuevas oportunidades dentro o fuera del entorno IoT.
+Este canal C2 encubierto completa la cadena operativa del ataque, asegurando una presencia persistente, adaptable y silenciosa del nodo falsificado en el ecosistema IoT del sistema de monitoreo.
 
 ### **7. Acción sobre el objetivo (Actions on objetives)**
 
-Con el nodo malicioso operativo y el canal de control consolidado, el atacante inicia las acciones finales sobre el sistema, orientadas a afectar directamente sus funciones críticas, manipular los resultados y explotar la infraestructura comprometida para objetivos secundarios. Estas acciones varían en función del propósito estratégico definido: sabotaje, desinformación, o utilización encubierta de recursos.
+Con el nodo manipulado instalado y gestionado mediante un canal de comando y control encubierto, el atacante ejecuta las acciones destinadas a alcanzar su objetivo principal: alterar las mediciones ambientales de forma sistemática y persistente, con el fin de proyectar una imagen ambiental falsa que oculte emisiones reales y mantenga la fachada de cumplimiento normativo.
+
+Estas acciones se diseñan para mantenerse bajo el umbral de detección, adaptarse dinámicamente al entorno y alimentar con datos falsos todos los subsistemas que confían en la información proveniente del sensor.
 
 ⚙️ **Técnicas utilizadas**
 
 - [T1565.002 – Data Manipulation: Network Traffic Manipulation](https://attack.mitre.org/techniques/T1565/002/)
-
-  El atacante continúa alterando los datos ambientales publicados en los tópicos MQTT, afectando la calidad y veracidad de la información visualizada.
-
+Modificación de los datos transmitidos a través de la red, alterando el contenido ambiental reportado por el nodo falsificado sin generar fallos sintácticos.
 - [T1499 – Endpoint Denial of Service](https://attack.mitre.org/techniques/T1499/)
-
-  Se incrementa la frecuencia de publicación de datos basura o se genera tráfico excesivo hacia el broker MQTT, con el objetivo de degradar el rendimiento del sistema o interrumpir su funcionamiento.
-
+(Opcional, como acción adicional) Inyección de tráfico masivo o datos inestables para degradar el funcionamiento del broker o la visualización si se busca sabotaje.
 - [T1584.005 – Compromise Infrastructure: Botnet](https://attack.mitre.org/techniques/T1584/005/)
-
-  Se utiliza el dispositivo comprometido como nodo de una botnet para operaciones externas, como túneles de tráfico, ataques distribuidos o persistencia dentro de otras redes.
+Uso del nodo falsificado como punto de anclaje para actividades paralelas, como túneles de red, almacenamiento encubierto o pivoting hacia otros sistemas.
 
 
 🔧 **Acciones realizadas**
+- Manipulación persistente de métricas ambientales
+El nodo falsificado publica valores simulados dentro de rangos normalizados (por ejemplo, CO₂: 385–395 ppm, PM2.5: 3.5–5.0 µg/m³), con variaciones mínimas aleatorias para evitar patrones estáticos.
+- Distorsión de registros históricos
+Los datos adulterados son almacenados como válidos en la base de datos, afectando análisis de tendencias, reportes regulatorios y toma de decisiones basada en evidencia.
+- Evasión de mecanismos de alerta
+Al operar bajo los umbrales de alarma configurados, se previenen notificaciones o acciones automáticas ante eventos contaminantes reales, simulando condiciones ambientalmente seguras.
+- Suspensión o adaptación dinámica ante auditorías
+El canal de control permite desactivar temporalmente el nodo o modificar su perfil de emisión para evitar detección durante inspecciones técnicas o validaciones cruzadas.
+- Uso encubierto del nodo (opcional)
+El dispositivo manipulado puede actuar como punto de acceso para actividades paralelas (VPN, exfiltración, túnel, escaneo interno), aprovechando su posición en red y la confianza del sistema.
 
-El atacante ejecuta distintas tácticas sobre el sistema comprometido:
+📊 **Impacto final**
+El atacante logra:
+- Evitar sanciones ambientales al mantener una supuesta normalidad en las mediciones reportadas.
+- Desinformar a organismos regulatorios y a la ciudadanía, ocultando episodios de contaminación real.
+- Proyectar una imagen de cumplimiento y responsabilidad ambiental, basada en datos completamente manipulados.
+- Dificultar auditorías retroactivas, ya que el sistema almacena series temporales aparentemente válidas, haciendo costoso y complejo reconstruir la verdad.
 
-1. Manipulación de datos históricos
+✅ **Resultado de las acciones**
+Con la ejecución efectiva de estas acciones, el atacante logra comprometer los tres pilares fundamentales del sistema de monitoreo:
+- Integridad: las mediciones no reflejan condiciones reales.
+- Disponibilidad: Los sensores legítimos fueron reemplazados o silenciados.
+- Confidencialidad: La infraestructura es utilizada para fines no autorizados.
 
-  - Publica mediciones ambientales falsas durante un periodo prolongado, alterando las tendencias que luego son utilizadas para tomar decisiones.
-  - Simula mejoras artificiales en la calidad del aire, generando una percepción errónea ante usuarios o autoridades.
-
-2. Sabotaje controlado del sistema
-
-  - Inunda el broker MQTT con datos duplicados, inestables o contradictorios, provocando inestabilidad en la base de datos y errores en el frontend del sistema.
-  - Reduce la disponibilidad del servicio, interfiriendo con la recepción y visualización de datos de sensores legítimos.
-
-3. Extensión del ataque
-
-  - Utiliza el nodo falso como intermediario para escanear otras partes de la red o lanzar ataques laterales contra sistemas conectados.
-  - Al ser parte de la infraestructura legítima, su actividad se enmascara dentro del tráfico esperado, dificultando su detección.
-
-4. Utilización encubierta de recursos del sistema
-
-  Aprovecha la conectividad y capacidad del nodo falsificado para ejecutar tareas paralelas encubiertas, como:
-
-  - Montaje de un proxy o túnel VPN para anonimizar otras actividades maliciosas.
-  - Almacenamiento oculto de información ilegal o robada, utilizando la base de datos o el almacenamiento de logs.
-  - Implementación de un cliente de criptominería ligera, aprovechando el uso constante de energía eléctrica del nodo para generar ganancias sin levantar sospechas.
-
-💥 **Resultado del ataque**
-
-Como consecuencia de estas acciones, el atacante logra:
-
-- Desinformar a usuarios y tomadores de decisiones, comprometiendo la confianza en el sistema.
-- Interrumpir el monitoreo ambiental, afectando la capacidad de respuesta ante situaciones de contaminación real.
-- Reutilizar la infraestructura como plataforma encubierta, aumentando el impacto y la persistencia del ataque sin necesidad de comprometer nuevos dispositivos.
-
-  Como resultado, la infraestructura del sistema comienza a trabajar en segundo plano para fines no previstos, sin interferir directamente en su función principal, lo que hace más difícil su detección.
-
-🧨 **Ejemplo – Sabotaje controlado (DoS suave)**
-
-Este script inunda el broker MQTT con publicaciones rápidas, duplicadas o ruido constante, afectando el procesamiento y la capacidad de respuesta del sistema.
-```script
-broker = "192.168.1.100"
-topic = "sensores/aire/nodo_03"
-
-cliente = mqtt.Client("nodo_flooder")
-cliente.connect(broker, 1883, 60)
-
-# Publica basura o datos redundantes muy seguido
-while True:
-    payload = json.dumps({
-        "pm25": random.uniform(5, 5.2),
-        "co2": random.uniform(399, 401),
-        "voc": random.uniform(0.2, 0.3),
-        "temperatura": random.uniform(21, 23),
-        "humedad": random.uniform(45, 55)
-    })
-    cliente.publish(topic, payload)
-    print(f"⚠️ Publicando en exceso: {payload}")
-    time.sleep(0.5) # Alta frecuencia
-```
+Estas acciones cierran el ciclo del ataque: el sistema sigue operando, pero sirve a los intereses del atacante, no de la verdad ni del bienestar público.
 
 ## 🔀 **Flujos del ataque**
 
@@ -377,50 +341,55 @@ El atacante ejecuta el ataque en una secuencia estructurada, respetando las fase
 ```flujo
 1. [Reconocimiento]
    ↓
-   Analiza la arquitectura del sistema, tecnologías empleadas (LoRaWAN, MQTT, WiFi, ESP32) y posibles vectores de ataque.
-   Identifica tópicos MQTT, APIs expuestas y ausencia de cifrado.
+   Se analiza la arquitectura del sistema adquirido: nodos ESP32-S3, comunicación MQTT sobre TLS, despliegue en GCP.
+   Se identifican certificados, tópicos de publicación y formato de payloads aceptados.
 
 2. [Armado del ataque]
    ↓
-   Desarrolla un script en Python que simula un nodo IoT legítimo.
-   Configura payloads manipulados que aparentan ser datos reales (PM2.5, CO₂, VOCs, etc.).
+   Se desarrolla firmware malicioso para un nodo clonado.
+   El nodo simula condiciones ambientales normales con datos ajustables dinámicamente.
 
 3. [Entrega del ataque]
    ↓
-   Publica datos falsificados en el broker MQTT mediante el nodo simulado.
-   Inyecta información sin activar alertas ni ser detectado por la interfaz de monitoreo.
+   Se reemplaza físicamente un nodo original por el falsificado durante tareas de mantenimiento.
+   El nodo se conecta al broker MQTT con certificados válidos y comienza a emitir datos manipulados.
 
-4. [Explotación de la vulnerabilidad]
+4. [Explotación]
    ↓
-   Aprovecha la falta de validación de origen de datos y ausencia de cifrado.
-   Logra que el sistema procese, almacene y visualice los datos maliciosos como si fueran auténticos.
+   El sistema acepta los datos como legítimos debido a la falta de validación de integridad y origen.
+   Se almacenan en la base de datos y se visualizan en dashboards y reportes sin levantar alertas.
 
-5. [Comando y Control (C2)]
+5. [Instalación]
    ↓
-   Mantiene comunicación remota con el nodo falso.
-   Ajusta los parámetros del ataque en tiempo real y responde a eventos defensivos.
+   El firmware garantiza persistencia tras reinicios, mimetiza comportamiento del nodo original
+   y mantiene configuraciones de publicación automáticas.
 
-6. [Acción sobre el objetivo]
+6. [Comando y Control (C2)]
    ↓
-   Manipula las tendencias históricas de calidad del aire, suprime alertas, genera datos engañosos.
-   Utiliza el sistema como proxy encubierto, punto de pivote y posible bot para operaciones futuras.
+   Se establece un canal oculto dentro de MQTT para ajustar en tiempo real los valores reportados.
+   También se incorpora un canal alternativo HTTP como fallback para administración remota.
+
+7. [Acción sobre el objetivo]
+   ↓
+   Se falsifican las mediciones ambientales, afectando decisiones regulatorias y percepción pública.
+   Se distorsiona el histórico, se evitan alertas y se sostiene una imagen de cumplimiento ambiental.
+
 ```
 Este flujo resume la lógica del ataque y permite visualizar de manera compacta cómo se encadenan las acciones para alcanzar el objetivo: comprometer la confiabilidad, disponibilidad y legitimidad del sistema de monitoreo ambiental, mientras se ocultan rastros y se explotan recursos de manera persistente.
 
 ## 🧠 **Conclusiones**
 
-Mediante una aplicación estructurada de la metodología Cyber Kill Chain, el atacante consigue comprometer tanto la integridad como la confiabilidad del sistema IoT destinado al monitoreo de la calidad del aire. Para lograrlo, se apoya en debilidades presentes en los mecanismos de comunicación, autenticación y validación de datos del sistema.
+El ejercicio demuestra cómo un atacante con acceso legítimo al sistema puede comprometer su confiabilidad sin necesidad de explotar vulnerabilidades técnicas complejas. A través de la sustitución encubierta de un nodo IoT, la manipulación de datos y el uso de canales de control persistente, se logra alterar la percepción ambiental sin ser detectado.
 
-A lo largo del ejercicio se pone en evidencia cómo un actor malicioso, con la planificación adecuada, es capaz de:
+El éxito del ataque se basa en:
 
-- Emular un nodo IoT legítimo, imitando con precisión el comportamiento de los sensores originales para integrarse al ecosistema sin levantar sospechas.
-- Alterar la percepción ambiental, inyectando valores manipulados que pueden distorsionar decisiones técnicas, regulatorias o sociales basadas en esos datos.
-- Explotar la infraestructura comprometida para fines ocultos, como canal de anonimización de tráfico, almacenamiento de datos ilícitos o incluso como parte de una red de bots.
-- Mantener el control a largo plazo, utilizando un canal de comando y control para ajustar dinámicamente la operación del nodo malicioso en función de la situación.
+La confianza excesiva en certificados y canales cifrados como únicos mecanismos de autenticación.
 
-Este ataque no se apoya en vulnerabilidades complejas ni requiere acceso físico a los dispositivos. Su efectividad se basa en el uso inteligente de técnicas conocidas de reconocimiento, análisis de red y manipulación de protocolos abiertos como MQTT, combinadas con herramientas accesibles públicamente.
+La ausencia de validación de integridad y origen de los datos.
 
-El escenario permite reflexionar sobre los riesgos reales que enfrentan los sistemas IoT cuando se prioriza la funcionalidad por sobre la seguridad. En estos entornos, la falta de controles robustos puede convertir una red diseñada para el bienestar social en una puerta de entrada silenciosa para actores con fines completamente opuestos.
+La falta de correlación entre dispositivos, ubicación física y métricas reportadas.
+
+Como resultado, el sistema sigue operativo, pero entrega información manipulada que distorsiona decisiones regulatorias, técnicas y sociales. El caso evidencia el riesgo real que implica no incorporar controles de seguridad integrales en entornos IoT críticos.
 
 ## 🥇 **Autor**
 
